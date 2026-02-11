@@ -1,1177 +1,173 @@
-import React, { useState, useEffect } from 'react';
-import { initializeApp } from 'firebase/app';
-import { 
-  getAuth, 
-  signInAnonymously, 
-  signInWithCustomToken,
-  onAuthStateChanged 
-} from 'firebase/auth';
-import { 
-  getFirestore, 
-  collection, 
-  addDoc, 
-  onSnapshot, 
-  deleteDoc, 
-  updateDoc, 
-  doc,
-  serverTimestamp
-} from 'firebase/firestore';
-import { 
-  LayoutDashboard, 
-  Users, 
-  Plus, 
-  Search, 
-  Trash2, 
-  Calendar, 
-  Phone, 
-  Clock, 
-  CreditCard, 
-  Image as ImageIcon,
-  Save,
-  X,
-  DollarSign,
-  History,
-  Filter,
-  Upload,
-  Palette,
-  PenTool,
-  MapPin,
-  Printer,
-  ChevronDown,
-  Edit,
-  AlertTriangle 
-} from 'lucide-react';
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ink Station - Yönetim Paneli</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap');
+        body { font-family: 'Inter', sans-serif; background-color: #0f0f0f; color: white; }
+        .glass { background: rgba(255, 255, 255, 0.05); backdrop-filter: blur(10px); border: 1px solid rgba(255,255,255,0.1); }
+    </style>
+</head>
+<body>
+    <div id="app" class="flex min-h-screen">
+        <aside class="w-64 bg-black border-r border-neutral-800 p-6 flex flex-col">
+            <div class="mb-10 text-center">
+                <h1 class="text-amber-500 font-bold text-xl tracking-tighter italic">INK STATION</h1>
+                <p class="text-[10px] text-neutral-500 uppercase tracking-widest">Studio Management</p>
+            </div>
 
-// --- Firebase Kurulumu ---
-const firebaseConfig = JSON.parse(__firebase_config);
-const app = initializeApp(firebaseConfig);
-const auth = getAuth(app);
-const db = getFirestore(app);
-const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
-
-// --- Ana Uygulama Bileşeni ---
-export default function App() {
-  const [user, setUser] = useState(null);
-  const [view, setView] = useState('dashboard'); 
-  const [customers, setCustomers] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [searchTerm, setSearchTerm] = useState('');
-  
-  // Arama Türü State'i
-  const [searchType, setSearchType] = useState('customer'); 
-
-  // Tarih Filtresi State'leri
-  const [startDate, setStartDate] = useState('');
-  const [endDate, setEndDate] = useState('');
-  
-  const [selectedCustomer, setSelectedCustomer] = useState(null);
-  const [isEditing, setIsEditing] = useState(false); 
-
-  // SİLME MODALI STATE'İ
-  const [deleteModal, setDeleteModal] = useState({ isOpen: false, customerId: null });
-
-  // 1. Kimlik Doğrulama (Auth)
-  useEffect(() => {
-    const initAuth = async () => {
-      try {
-        if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
-          await signInWithCustomToken(auth, __initial_auth_token);
-        } else {
-          await signInAnonymously(auth);
-        }
-      } catch (error) {
-        console.error("Auth Hatası:", error);
-      }
-    };
-    
-    initAuth();
-    const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
-      setUser(currentUser);
-    });
-    return () => unsubscribe();
-  }, []);
-
-  // 2. Veri Çekme (Firestore)
-  useEffect(() => {
-    if (!user) return;
-
-    const customersRef = collection(db, 'artifacts', appId, 'public', 'data', 'customers');
-    
-    const unsubscribe = onSnapshot(customersRef, (snapshot) => {
-      const customerList = snapshot.docs.map(doc => ({
-        id: doc.id,
-        ...doc.data()
-      }));
-      customerList.sort((a, b) => new Date(a.transactionDate) - new Date(b.transactionDate));
-      setCustomers(customerList);
-      setLoading(false);
-    }, (error) => {
-      console.error("Veri çekme hatası:", error);
-      setLoading(false);
-    });
-
-    return () => unsubscribe();
-  }, [user]);
-
-  // Yeni müşteri seçildiğinde düzenleme modunu kapat
-  useEffect(() => {
-    setIsEditing(false);
-  }, [selectedCustomer]);
-
-  // SİLME İŞLEMİ BAŞLATMA
-  const handleDeleteRequest = (id) => {
-    setDeleteModal({ isOpen: true, customerId: id });
-  };
-
-  // SİLME İŞLEMİNİ ONAYLAMA
-  const confirmDelete = async () => {
-    const id = deleteModal.customerId;
-    if (!id) return;
-
-    try {
-      await deleteDoc(doc(db, 'artifacts', appId, 'public', 'data', 'customers', id));
-      if (selectedCustomer?.id === id) setSelectedCustomer(null);
-      setDeleteModal({ isOpen: false, customerId: null });
-    } catch (error) {
-      console.error("Silme hatası:", error);
-      alert("Silme işlemi sırasında bir hata oluştu.");
-    }
-  };
-
-  // Müşteri Güncelleme
-  const handleUpdate = async (updatedData) => {
-    try {
-      const customerRef = doc(db, 'artifacts', appId, 'public', 'data', 'customers', selectedCustomer.id);
-      await updateDoc(customerRef, updatedData);
-      setSelectedCustomer({ ...selectedCustomer, ...updatedData });
-      setIsEditing(false);
-    } catch (error) {
-      console.error("Güncelleme hatası:", error);
-      alert("Güncelleme sırasında bir hata oluştu.");
-    }
-  };
-
-  // Yazdırma Fonksiyonu
-  const handlePrint = () => {
-    window.print();
-  };
-
-  // Gelişmiş Filtreleme ve İstatistik Mantığı
-  const filteredCustomers = customers.filter(c => {
-    const term = searchTerm.toLowerCase();
-    let matchesSearch = false;
-
-    if (searchType === 'customer') {
-      matchesSearch = 
-        c.firstName.toLowerCase().includes(term) ||
-        c.lastName.toLowerCase().includes(term) ||
-        c.phone.includes(term);
-    } else if (searchType === 'tattooArtist') {
-      matchesSearch = c.tattooArtist && c.tattooArtist.toLowerCase().includes(term);
-    } else if (searchType === 'designer') {
-      matchesSearch = c.designer && c.designer.toLowerCase().includes(term);
-    }
-    
-    if (searchTerm === '') matchesSearch = true;
-
-    let matchesDate = true;
-    if (startDate) {
-      matchesDate = matchesDate && c.transactionDate >= startDate;
-    }
-    if (endDate) {
-      matchesDate = matchesDate && c.transactionDate <= endDate;
-    }
-
-    return matchesSearch && matchesDate;
-  });
-
-  // --- GÜNCELLENMİŞ İSTATİSTİKLER ---
-  // Artık 'customers' (tümü) yerine 'filteredCustomers' (filtrelenmiş) kullanılıyor.
-  const totalRevenue = filteredCustomers.reduce((sum, c) => sum + (parseFloat(c.totalPrice) || 0), 0);
-  const totalDeposit = filteredCustomers.reduce((sum, c) => sum + (parseFloat(c.deposit) || 0), 0);
-  const pendingCount = filteredCustomers.length;
-
-  const getSearchPlaceholder = () => {
-    if (searchType === 'customer') return 'Müşteri ara...';
-    if (searchType === 'tattooArtist') return 'Dövmeci ara...';
-    if (searchType === 'designer') return 'Tasarımcı ara...';
-    return 'Ara...';
-  };
-
-  if (!user && loading) return <div className="flex items-center justify-center h-screen bg-neutral-900 text-amber-500">Yükleniyor...</div>;
-
-  return (
-    <>
-      {/* --- SİLME ONAY MODALI --- */}
-      {deleteModal.isOpen && (
-        <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4 print:hidden animate-in fade-in duration-200">
-          <div className="bg-white rounded-2xl shadow-2xl max-w-sm w-full overflow-hidden border border-neutral-200 transform scale-100 transition-transform">
-            <div className="p-8 text-center">
-              <div className="w-20 h-20 bg-red-50 text-red-500 rounded-full flex items-center justify-center mx-auto mb-6 border-4 border-red-100">
-                <Trash2 size={40} />
-              </div>
-              <h3 className="text-2xl font-black text-neutral-800 mb-2 uppercase tracking-wide">EMİN MİSİNİZ?</h3>
-              <p className="text-sm text-neutral-500 mb-8 font-medium px-4">Bu kayıt kalıcı olarak silinecektir. Bu işlem geri alınamaz.</p>
-              
-              <div className="flex gap-4">
-                <button 
-                  onClick={() => setDeleteModal({ isOpen: false, customerId: null })}
-                  className="flex-1 py-4 bg-neutral-100 hover:bg-neutral-200 text-neutral-700 font-bold rounded-xl transition-colors tracking-wide"
-                >
-                  HAYIR
+            <nav class="space-y-2 flex-1">
+                <button @click="view = 'dashboard'" :class="view === 'dashboard' ? 'bg-amber-600 text-white' : 'text-neutral-400 hover:bg-neutral-900'" class="w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all">
+                    <i data-lucide="layout-dashboard"></i> Genel Bakış
                 </button>
-                <button 
-                  onClick={confirmDelete}
-                  className="flex-1 py-4 bg-red-600 hover:bg-red-700 text-white font-bold rounded-xl transition-colors shadow-lg shadow-red-500/30 tracking-wide"
-                >
-                  EVET
+                <button @click="view = 'add-customer'" :class="view === 'add-customer' ? 'bg-amber-600 text-white' : 'text-neutral-400 hover:bg-neutral-900'" class="w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all">
+                    <i data-lucide="plus-circle"></i> Yeni Kayıt Ekle
                 </button>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
+            </nav>
 
-      {/* --- YAZDIRMA EKRANI --- */}
-      <div className="hidden print:block p-8 bg-white text-black font-sans">
-        {selectedCustomer ? (
-          <div className="border-2 border-black p-8 max-w-2xl mx-auto rounded-none">
-            <div className="text-center border-b-2 border-black pb-6 mb-8 flex flex-col items-center">
-              <img src="logo.jpg" alt="Logo" className="w-24 h-24 mb-2 object-contain grayscale" />
-              <h1 className="text-3xl font-bold uppercase tracking-widest font-serif">Randevu Fişi</h1>
-              <p className="text-sm text-gray-600 mt-2">{new Date().toLocaleDateString('tr-TR')} tarihinde oluşturulmuştur.</p>
-            </div>
-
-            <div className="space-y-6 text-lg font-serif">
-              <div className="flex border-b border-dashed border-gray-400 pb-2">
-                <span className="w-48 font-bold text-black uppercase text-sm tracking-wider">Müşteri:</span>
-                <span className="flex-1 font-medium">{selectedCustomer.firstName} {selectedCustomer.lastName}</span>
-              </div>
-              <div className="flex border-b border-dashed border-gray-400 pb-2">
-                <span className="w-48 font-bold text-black uppercase text-sm tracking-wider">Telefon:</span>
-                <span className="flex-1 font-medium">{selectedCustomer.phone}</span>
-              </div>
-              <div className="flex border-b border-dashed border-gray-400 pb-2">
-                <span className="w-48 font-bold text-black uppercase text-sm tracking-wider">Randevu Tarihi:</span>
-                <span className="flex-1 font-medium">{new Date(selectedCustomer.transactionDate).toLocaleDateString('tr-TR')}</span>
-              </div>
-              <div className="flex border-b border-dashed border-gray-400 pb-2">
-                <span className="w-48 font-bold text-black uppercase text-sm tracking-wider">Randevu Saati:</span>
-                <span className="flex-1 font-medium">{selectedCustomer.transactionTime}</span>
-              </div>
-              <div className="flex border-b border-dashed border-gray-400 pb-2">
-                <span className="w-48 font-bold text-black uppercase text-sm tracking-wider">Dövmeci:</span>
-                <span className="flex-1 font-medium">{selectedCustomer.tattooArtist || '-'}</span>
-              </div>
-              <div className="flex border-b border-dashed border-gray-400 pb-2">
-                <span className="w-48 font-bold text-black uppercase text-sm tracking-wider">Referans:</span>
-                <span className="flex-1 font-medium">{selectedCustomer.referralMethod}</span>
-              </div>
-            </div>
-
-            <div className="mt-20 flex justify-between pt-8">
-              <div className="text-center w-1/3">
-                <div className="border-t border-black pt-2 font-bold uppercase text-sm">Müşteri İmza</div>
-              </div>
-              <div className="text-center w-1/3">
-                <div className="border-t border-black pt-2 font-bold uppercase text-sm">Yetkili İmza</div>
-              </div>
-            </div>
-          </div>
-        ) : (
-          <div className="text-center mt-20">Lütfen yazdırmak için bir müşteri seçiniz.</div>
-        )}
-      </div>
-
-      {/* --- NORMAL EKRAN --- */}
-      <div className="flex h-screen bg-neutral-100 font-sans text-gray-800 overflow-hidden print:hidden">
-        
-        {/* Sol Menü */}
-        <aside className="w-72 bg-black text-gray-300 flex flex-col flex-shrink-0 shadow-2xl border-r border-neutral-800 relative overflow-hidden">
-          <div className="absolute top-0 left-0 w-full h-32 bg-gradient-to-b from-neutral-900 to-transparent opacity-50 pointer-events-none"></div>
-
-          <div className="p-8 flex flex-col items-center border-b border-neutral-800 z-10">
-             <div className="w-32 h-32 rounded-full border-2 border-amber-500/50 p-1 mb-4 shadow-[0_0_20px_rgba(245,158,11,0.2)] bg-black">
-                <img src="logo.jpg" alt="Ink Station" className="w-full h-full object-cover rounded-full" />
-             </div>
-            <h1 className="text-xl font-bold tracking-widest flex flex-col items-center gap-1 text-white uppercase">
-              <span>INK STATION</span>
-              <span className="text-amber-500 text-xs tracking-[0.3em] font-medium">STUDIO PANEL</span>
-            </h1>
-          </div>
-          
-          <nav className="flex-1 p-6 space-y-3 z-10">
-            <button 
-              onClick={() => { setView('dashboard'); setSelectedCustomer(null); }}
-              className={`w-full flex items-center gap-4 px-5 py-4 rounded-lg transition-all duration-300 group ${view === 'dashboard' ? 'bg-gradient-to-r from-amber-600 to-amber-700 text-white shadow-lg shadow-amber-900/50 border border-amber-500/20' : 'hover:bg-neutral-900 text-gray-400 hover:text-amber-500 hover:border-l-4 hover:border-amber-600'}`}
-            >
-              <LayoutDashboard size={22} className={view === 'dashboard' ? 'text-white' : 'group-hover:text-amber-500'} />
-              <span className="font-medium tracking-wide">Genel Bakış</span>
-            </button>
-            
-            <button 
-              onClick={() => { setView('add-customer'); setSelectedCustomer(null); }}
-              className={`w-full flex items-center gap-4 px-5 py-4 rounded-lg transition-all duration-300 group ${view === 'add-customer' ? 'bg-gradient-to-r from-amber-600 to-amber-700 text-white shadow-lg shadow-amber-900/50 border border-amber-500/20' : 'hover:bg-neutral-900 text-gray-400 hover:text-amber-500 hover:border-l-4 hover:border-amber-600'}`}
-            >
-              <Plus size={22} className={view === 'add-customer' ? 'text-white' : 'group-hover:text-amber-500'} />
-              <span className="font-medium tracking-wide">Yeni İş Ekle</span>
-            </button>
-          </nav>
-
-          <div className="p-6 border-t border-neutral-900 text-xs text-neutral-600 text-center z-10">
-            v1.8.0 • Smart Statistics
-          </div>
+            <div class="text-[10px] text-neutral-600 text-center">v1.0.0 • Offline Mode</div>
         </aside>
 
-        {/* Ana İçerik */}
-        <main className="flex-1 flex flex-col overflow-hidden bg-neutral-50">
-          
-          {/* Header */}
-          <header className="h-auto min-h-[72px] py-3 bg-white border-b border-neutral-200 flex flex-col md:flex-row items-center justify-between px-8 shadow-sm flex-shrink-0 z-10 gap-4">
-            <h2 className="text-xl font-bold text-neutral-800 hidden md:block tracking-tight">
-              {view === 'dashboard' && 'STÜDYO DURUMU'}
-              {view === 'add-customer' && 'YENİ MÜŞTERİ KAYDI'}
-            </h2>
-            
-            <div className="flex flex-col md:flex-row items-center gap-4 flex-1 justify-end w-full md:w-auto">
-              
-              {/* Tarih Filtreleri */}
-              <div className="flex items-center bg-white border border-neutral-300 rounded-md px-3 py-2 gap-3 shadow-sm hover:border-amber-400 transition-colors">
-                <Filter size={16} className="text-amber-600" />
+        <main class="flex-1 p-8 overflow-y-auto">
+            <div v-if="view === 'dashboard'">
+                <h2 class="text-3xl font-bold mb-8">Stüdyo Durumu</h2>
                 
-                <div className="flex items-center gap-2">
-                  <span className="text-[10px] text-neutral-400 font-bold uppercase tracking-wide">Başlangıç</span>
-                  <input 
-                    type="date" 
-                    className="bg-transparent border-none text-xs focus:ring-0 p-0 text-neutral-700 w-24 font-medium"
-                    value={startDate}
-                    onChange={(e) => setStartDate(e.target.value)}
-                  />
-                </div>
-                
-                <span className="text-neutral-300">|</span>
-                
-                <div className="flex items-center gap-2">
-                  <span className="text-[10px] text-neutral-400 font-bold uppercase tracking-wide">Bitiş</span>
-                  <input 
-                    type="date" 
-                    className="bg-transparent border-none text-xs focus:ring-0 p-0 text-neutral-700 w-24 font-medium"
-                    value={endDate}
-                    onChange={(e) => setEndDate(e.target.value)}
-                  />
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
+                    <div class="glass p-6 rounded-2xl">
+                        <p class="text-neutral-400 text-sm">Toplam Beklenen</p>
+                        <p class="text-3xl font-bold text-amber-500">{{ totalRevenue }} ₺</p>
+                    </div>
+                    <div class="glass p-6 rounded-2xl">
+                        <p class="text-neutral-400 text-sm">Alınan Kaporalar</p>
+                        <p class="text-3xl font-bold text-emerald-500">{{ totalDeposit }} ₺</p>
+                    </div>
+                    <div class="glass p-6 rounded-2xl">
+                        <p class="text-neutral-400 text-sm">Aktif Randevular</p>
+                        <p class="text-3xl font-bold text-indigo-500">{{ customers.length }}</p>
+                    </div>
                 </div>
 
-                {(startDate || endDate) && (
-                  <button onClick={() => { setStartDate(''); setEndDate(''); }} className="ml-1 text-xs text-red-600 hover:underline font-bold">
-                    TEMİZLE
-                  </button>
-                )}
-              </div>
+                <div class="glass rounded-2xl p-6">
+                    <div class="flex justify-between items-center mb-6">
+                        <h3 class="font-bold text-lg">Müşteri Listesi</h3>
+                        <input v-model="search" type="text" placeholder="İsim veya telefon ara..." class="bg-neutral-900 border border-neutral-800 rounded-lg px-4 py-2 text-sm focus:outline-none focus:border-amber-500">
+                    </div>
 
-              {/* Arama Alanı */}
-              <div className="flex items-center gap-0 w-full md:w-auto bg-white border border-neutral-300 rounded-full px-4 py-1.5 shadow-sm hover:border-amber-400 transition-colors group focus-within:border-amber-500 focus-within:ring-1 focus-within:ring-amber-500">
-                <div className="relative">
-                  <select 
-                    value={searchType} 
-                    onChange={(e) => setSearchType(e.target.value)}
-                    className="bg-transparent text-xs font-bold text-neutral-600 focus:outline-none appearance-none pr-5 cursor-pointer py-1 uppercase tracking-wide"
-                  >
-                    <option value="customer">Müşteri</option>
-                    <option value="tattooArtist">Dövmeci</option>
-                    <option value="designer">Tasarımcı</option>
-                  </select>
-                  <ChevronDown size={10} className="absolute right-0 top-1/2 transform -translate-y-1/2 text-amber-500 pointer-events-none" />
+                    <div class="space-y-3">
+                        <div v-for="c in filteredCustomers" :key="c.id" class="flex items-center justify-between p-4 bg-neutral-900/50 border border-neutral-800 rounded-xl hover:border-amber-500/50 transition-all">
+                            <div>
+                                <p class="font-semibold">{{ c.name }}</p>
+                                <p class="text-xs text-neutral-500">{{ c.date }} - {{ c.artist }}</p>
+                            </div>
+                            <div class="text-right">
+                                <p class="font-bold text-amber-500">{{ c.price }} ₺</p>
+                                <button @click="deleteCustomer(c.id)" class="text-[10px] text-red-500 hover:underline">SİL</button>
+                            </div>
+                        </div>
+                        <p v-if="filteredCustomers.length === 0" class="text-center text-neutral-600 py-10">Henüz kayıtlı müşteri yok.</p>
+                    </div>
                 </div>
-
-                <div className="w-px h-4 bg-neutral-300 mx-3"></div>
-
-                <div className="relative flex-1">
-                  <input 
-                    type="text" 
-                    placeholder={getSearchPlaceholder()}
-                    className="bg-transparent border-none text-sm focus:ring-0 w-full md:w-48 focus:outline-none py-1 text-neutral-800 placeholder-neutral-400"
-                    value={searchTerm}
-                    onChange={(e) => setSearchTerm(e.target.value)}
-                  />
-                  {searchTerm ? (
-                    <button onClick={() => setSearchTerm('')} className="absolute right-0 top-1/2 transform -translate-y-1/2 text-neutral-400 hover:text-red-500">
-                      <X size={14} />
-                    </button>
-                  ) : (
-                    <Search className="absolute right-0 top-1/2 transform -translate-y-1/2 text-amber-500" size={16} />
-                  )}
-                </div>
-              </div>
-              
             </div>
-          </header>
 
-          {/* Sayfa İçeriği */}
-          <div className="flex-1 overflow-y-auto p-8">
-            
-            {view === 'dashboard' && (
-              <div className="space-y-8">
-                {/* İstatistikler - DİNAMİK */}
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                  <StatCard 
-                    title={startDate || endDate ? "FİLTRELİ CİRO" : "TOPLAM CİRO"} 
-                    value={`${totalRevenue.toLocaleString('tr-TR')} ₺`} 
-                    icon={<DollarSign className="text-amber-500" size={24} />} 
-                    color="bg-white border-amber-200 border-l-4 border-l-amber-500"
-                  />
-                  <StatCard 
-                    title={startDate || endDate ? "FİLTRELİ KAPORA" : "ALINAN KAPORA"} 
-                    value={`${totalDeposit.toLocaleString('tr-TR')} ₺`} 
-                    icon={<CreditCard className="text-emerald-600" size={24} />} 
-                    color="bg-white border-neutral-200 border-l-4 border-l-emerald-500"
-                  />
-                  <StatCard 
-                    title={startDate || endDate ? "SEÇİLİ KAYIT" : "TOPLAM KAYIT"} 
-                    value={pendingCount} 
-                    icon={<Users className="text-indigo-600" size={24} />} 
-                    color="bg-white border-neutral-200 border-l-4 border-l-indigo-500"
-                  />
-                </div>
-
-                <div className="flex flex-col md:flex-row gap-8 h-[calc(100vh-280px)] min-h-[500px]">
-                  {/* Liste */}
-                  <div className={`${selectedCustomer ? 'w-full md:w-1/2' : 'w-full'} bg-white rounded-xl shadow-md border border-neutral-200 flex flex-col transition-all duration-300 overflow-hidden`}>
-                    <div className="p-5 border-b border-neutral-100 flex justify-between items-center bg-neutral-50">
-                      <h3 className="font-bold text-neutral-700 flex items-center gap-2 tracking-wide text-sm uppercase">
-                        {(startDate || endDate || searchTerm) ? (
-                           <span className="bg-amber-100 text-amber-800 px-2 py-1 rounded text-xs flex items-center gap-1 font-bold">
-                             <Calendar size={12} /> FİLTRELİ LİSTE
-                          </span>
-                        ) : 'MÜŞTERİ LİSTESİ'}
-                      </h3>
-                      <span className="text-xs bg-black text-amber-500 px-3 py-1 rounded-full font-bold">{filteredCustomers.length}</span>
+            <div v-if="view === 'add-customer'" class="max-w-2xl mx-auto">
+                <h2 class="text-3xl font-bold mb-8 text-center">Yeni Kayıt Oluştur</h2>
+                <form @submit.prevent="addCustomer" class="glass p-8 rounded-3xl space-y-4">
+                    <div class="grid grid-cols-2 gap-4">
+                        <div class="space-y-1">
+                            <label class="text-xs text-neutral-400 uppercase">Ad Soyad</label>
+                            <input v-model="newCust.name" required type="text" class="w-full bg-neutral-900 border border-neutral-800 rounded-xl p-3 focus:border-amber-500 outline-none">
+                        </div>
+                        <div class="space-y-1">
+                            <label class="text-xs text-neutral-400 uppercase">Telefon</label>
+                            <input v-model="newCust.phone" type="text" class="w-full bg-neutral-900 border border-neutral-800 rounded-xl p-3 focus:border-amber-500 outline-none">
+                        </div>
                     </div>
-                    <div className="overflow-y-auto flex-1 p-3 bg-neutral-50/50">
-                      {filteredCustomers.length === 0 ? (
-                        <div className="flex flex-col items-center justify-center h-full text-neutral-400">
-                          <Calendar size={48} className="mb-3 opacity-20 text-amber-500" />
-                          <p className="font-medium">Kayıt bulunamadı.</p>
+                    <div class="grid grid-cols-2 gap-4">
+                        <div class="space-y-1">
+                            <label class="text-xs text-neutral-400 uppercase">Tarih</label>
+                            <input v-model="newCust.date" type="date" class="w-full bg-neutral-900 border border-neutral-800 rounded-xl p-3 focus:border-amber-500 outline-none">
                         </div>
-                      ) : (
-                        <div className="space-y-3">
-                          {filteredCustomers.map(customer => (
-                            <div 
-                              key={customer.id}
-                              onClick={() => setSelectedCustomer(customer)}
-                              className={`p-4 rounded-lg border cursor-pointer transition-all hover:shadow-lg flex justify-between items-center group
-                                ${selectedCustomer?.id === customer.id ? 'border-amber-500 bg-white ring-1 ring-amber-500 shadow-md' : 'border-neutral-200 bg-white hover:border-amber-300'}`}
-                            >
-                              <div className="flex items-center gap-4">
-                                <div className={`h-12 w-12 rounded-full flex items-center justify-center font-bold shrink-0 text-lg shadow-inner
-                                  ${selectedCustomer?.id === customer.id ? 'bg-black text-amber-500' : 'bg-neutral-200 text-neutral-600 group-hover:bg-amber-100 group-hover:text-amber-700'}`}>
-                                  {customer.firstName.charAt(0)}{customer.lastName.charAt(0)}
-                                </div>
-                                <div>
-                                  <p className="font-bold text-neutral-800 text-lg">{customer.firstName} {customer.lastName}</p>
-                                  <div className="flex items-center gap-3 text-xs text-neutral-500 mt-1">
-                                    <span className="flex items-center gap-1"><Calendar size={12} className="text-amber-600" /> {new Date(customer.transactionDate).toLocaleDateString('tr-TR')}</span>
-                                    {searchType === 'tattooArtist' && customer.tattooArtist && (
-                                      <span className="flex items-center gap-1 text-neutral-700 bg-neutral-100 px-1.5 py-0.5 rounded border border-neutral-200"><PenTool size={10} /> {customer.tattooArtist}</span>
-                                    )}
-                                    {searchType === 'designer' && customer.designer && (
-                                      <span className="flex items-center gap-1 text-neutral-700 bg-neutral-100 px-1.5 py-0.5 rounded border border-neutral-200"><Palette size={10} /> {customer.designer}</span>
-                                    )}
-                                    {searchType === 'customer' && (
-                                      <span className="flex items-center gap-1 text-amber-800 bg-amber-50 px-1.5 py-0.5 rounded font-medium">{customer.referralMethod}</span>
-                                    )}
-                                  </div>
-                                </div>
-                              </div>
-                              <div className="text-right">
-                                <p className="text-base font-black text-neutral-800 tracking-tight">{parseFloat(customer.totalPrice).toLocaleString('tr-TR')} ₺</p>
-                                <div className="flex items-center justify-end gap-1 mt-1">
-                                  {customer.imageUrl && <ImageIcon size={14} className="text-amber-500" />}
-                                </div>
-                              </div>
-                            </div>
-                          ))}
+                        <div class="space-y-1">
+                            <label class="text-xs text-neutral-400 uppercase">Sanatçı</label>
+                            <input v-model="newCust.artist" type="text" class="w-full bg-neutral-900 border border-neutral-800 rounded-xl p-3 focus:border-amber-500 outline-none">
                         </div>
-                      )}
                     </div>
-                  </div>
-
-                  {/* Detay & Aksiyonlar */}
-                  {selectedCustomer && (
-                    <div className="w-full md:w-1/2 bg-white rounded-xl shadow-xl border border-neutral-200 flex flex-col animate-in slide-in-from-right-4 duration-300 overflow-hidden">
-                      <div className="p-5 border-b border-neutral-100 flex justify-between items-center bg-black text-white">
-                        <h3 className="font-bold flex items-center gap-2 uppercase tracking-wider text-amber-500">
-                          {isEditing ? 'DÜZENLEME MODU' : 'DETAYLAR'}
-                          <span className="text-xs font-normal text-neutral-400 bg-neutral-900 px-2 py-0.5 rounded">#{selectedCustomer.id.slice(0,6)}</span>
-                        </h3>
-                        <div className="flex gap-3">
-                          {!isEditing ? (
-                            <>
-                              <button 
-                                onClick={handlePrint}
-                                className="p-2 bg-neutral-800 hover:bg-amber-600 hover:text-white text-amber-500 rounded-full transition-all shadow-lg shadow-black/50" 
-                                title="Formu Yazdır"
-                              >
-                                <Printer size={18} />
-                              </button>
-                              <button 
-                                onClick={() => setIsEditing(true)}
-                                className="p-2 bg-neutral-800 hover:bg-blue-600 hover:text-white text-blue-500 rounded-full transition-all shadow-lg shadow-black/50" 
-                                title="Düzenle"
-                              >
-                                <Edit size={18} />
-                              </button>
-                              <div className="w-px bg-neutral-700 mx-1"></div>
-                              <button 
-                                onClick={() => handleDeleteRequest(selectedCustomer.id)}
-                                className="p-2 hover:bg-red-600 hover:text-white text-neutral-400 rounded-full transition-all" 
-                                title="Sil"
-                              >
-                                <Trash2 size={18} />
-                              </button>
-                              <button 
-                                onClick={() => setSelectedCustomer(null)}
-                                className="p-2 hover:bg-neutral-700 text-neutral-400 rounded-full transition-all"
-                              >
-                                <X size={18} />
-                              </button>
-                            </>
-                          ) : (
-                            <button 
-                              onClick={() => setIsEditing(false)}
-                              className="p-2 hover:bg-neutral-700 text-neutral-400 rounded-full transition-all flex items-center gap-2"
-                            >
-                              <span className="text-xs">Vazgeç</span> <X size={18} />
-                            </button>
-                          )}
+                    <div class="grid grid-cols-2 gap-4">
+                        <div class="space-y-1">
+                            <label class="text-xs text-neutral-400 uppercase">Toplam Fiyat (₺)</label>
+                            <input v-model.number="newCust.price" type="number" class="w-full bg-neutral-900 border border-neutral-800 rounded-xl p-3 focus:border-amber-500 outline-none">
                         </div>
-                      </div>
-
-                      {/* İÇERİK: EDİT FORM VEYA DETAY GÖRÜNÜMÜ */}
-                      {isEditing ? (
-                        <div className="p-6 overflow-y-auto flex-1 bg-white">
-                          <EditCustomerForm 
-                             customer={selectedCustomer} 
-                             onSave={handleUpdate} 
-                             onCancel={() => setIsEditing(false)} 
-                          />
+                        <div class="space-y-1">
+                            <label class="text-xs text-neutral-400 uppercase">Kapora (₺)</label>
+                            <input v-model.number="newCust.deposit" type="number" class="w-full bg-neutral-900 border border-neutral-800 rounded-xl p-3 focus:border-amber-500 outline-none">
                         </div>
-                      ) : (
-                        <div className="p-8 overflow-y-auto flex-1 space-y-8 bg-white">
-                          {/* Başlık */}
-                          <div className="flex items-start gap-5">
-                             <div className="h-20 w-20 rounded-2xl bg-gradient-to-br from-amber-500 to-amber-700 text-white flex items-center justify-center text-3xl font-black shadow-lg shadow-amber-500/30 shrink-0 border-2 border-white ring-1 ring-amber-200">
-                                {selectedCustomer.firstName.charAt(0)}
-                             </div>
-                             <div className="flex-1">
-                               <h2 className="text-3xl font-black text-neutral-900 tracking-tight uppercase">{selectedCustomer.firstName} {selectedCustomer.lastName}</h2>
-                               <div className="flex items-center gap-4 mt-2 text-sm text-neutral-600 flex-wrap font-medium">
-                                  <span className="flex items-center gap-1.5"><Phone size={16} className="text-amber-600"/> {selectedCustomer.phone}</span>
-                                  <span className="flex items-center gap-1.5"><Calendar size={16} className="text-amber-600"/> {new Date(selectedCustomer.transactionDate).toLocaleDateString('tr-TR')}</span>
-                                  <span className="flex items-center gap-1.5 font-bold text-amber-700 bg-amber-50 px-2 py-0.5 rounded border border-amber-100"><Clock size={14}/> {selectedCustomer.transactionTime}</span>
-                               </div>
-                             </div>
-                             {/* Geliş Şekli Badge */}
-                             <div className="flex flex-col items-end">
-                                <span className={`px-4 py-1.5 rounded-full text-xs font-black uppercase tracking-wider border shadow-sm ${selectedCustomer.referralMethod === 'Sosyal Medya' ? 'bg-purple-50 text-purple-800 border-purple-200' : 'bg-orange-50 text-orange-800 border-orange-200'}`}>
-                                  {selectedCustomer.referralMethod}
-                                </span>
-                             </div>
-                          </div>
-
-                          {/* Sanatçı Bilgileri */}
-                          <div className="grid grid-cols-2 gap-5">
-                             <div className="bg-neutral-50 p-4 rounded-xl border border-neutral-200 flex items-center gap-4 hover:border-amber-300 transition-colors">
-                                <div className="h-12 w-12 rounded-full bg-black text-amber-500 flex items-center justify-center shadow-md">
-                                  <PenTool size={20} />
-                                </div>
-                                <div>
-                                  <p className="text-[10px] text-neutral-400 font-bold uppercase tracking-wider">Dövmeci</p>
-                                  <p className="text-base font-bold text-neutral-900">{selectedCustomer.tattooArtist || 'Belirtilmedi'}</p>
-                                </div>
-                             </div>
-                             <div className="bg-neutral-50 p-4 rounded-xl border border-neutral-200 flex items-center gap-4 hover:border-amber-300 transition-colors">
-                                <div className="h-12 w-12 rounded-full bg-neutral-200 text-neutral-600 flex items-center justify-center shadow-sm">
-                                  <Palette size={20} />
-                                </div>
-                                <div>
-                                  <p className="text-[10px] text-neutral-400 font-bold uppercase tracking-wider">Tasarımcı</p>
-                                  <p className="text-base font-bold text-neutral-900">{selectedCustomer.designer || 'Belirtilmedi'}</p>
-                                </div>
-                             </div>
-                          </div>
-
-                          {/* Finansal Durum */}
-                          <div className="bg-black rounded-2xl p-6 border border-neutral-800 grid grid-cols-3 gap-6 text-white shadow-2xl shadow-neutral-900/20 relative overflow-hidden">
-                            <div className="absolute top-0 right-0 w-32 h-32 bg-amber-500 blur-[60px] opacity-10 rounded-full"></div>
-                            
-                            <div className="text-center border-r border-neutral-800 relative z-10">
-                              <p className="text-[10px] text-neutral-400 uppercase font-bold tracking-widest mb-1">Toplam</p>
-                              <p className="text-xl font-black text-white">{parseFloat(selectedCustomer.totalPrice).toLocaleString('tr-TR')} ₺</p>
-                            </div>
-                            <div className="text-center border-r border-neutral-800 relative z-10">
-                              <p className="text-[10px] text-neutral-400 uppercase font-bold tracking-widest mb-1">Kapora</p>
-                              <p className="text-xl font-black text-emerald-400">{parseFloat(selectedCustomer.deposit).toLocaleString('tr-TR')} ₺</p>
-                            </div>
-                            <div className="text-center relative z-10">
-                              <p className="text-[10px] text-neutral-400 uppercase font-bold tracking-widest mb-1">Bakiye</p>
-                              <p className="text-xl font-black text-amber-500">
-                                {(parseFloat(selectedCustomer.totalPrice) - parseFloat(selectedCustomer.deposit)).toLocaleString('tr-TR')} ₺
-                              </p>
-                            </div>
-                          </div>
-
-                          {/* Görsel */}
-                          <div>
-                            <h4 className="text-xs font-bold text-neutral-500 mb-4 flex items-center gap-2 uppercase tracking-widest">
-                              <ImageIcon size={14} /> Referans Görsel
-                            </h4>
-                            {selectedCustomer.imageUrl ? (
-                              <div className="rounded-2xl overflow-hidden border-2 border-neutral-100 shadow-lg group relative bg-neutral-100 flex justify-center h-64">
-                                <img 
-                                  src={selectedCustomer.imageUrl} 
-                                  alt="İş Görseli" 
-                                  className="w-full h-full object-contain p-2" 
-                                />
-                              </div>
-                            ) : (
-                              <div className="w-full h-32 bg-neutral-50 border-2 border-dashed border-neutral-200 rounded-xl flex items-center justify-center text-neutral-400 text-sm font-medium">
-                                Görsel eklenmemiş
-                              </div>
-                            )}
-                          </div>
-
-                          {/* Ödeme Geçmişi */}
-                          <div className="pb-4">
-                            <h4 className="text-xs font-bold text-neutral-500 mb-4 flex items-center gap-2 uppercase tracking-widest">
-                              <History size={14} /> Ödeme Geçmişi
-                            </h4>
-                            {selectedCustomer.paymentDates && selectedCustomer.paymentDates.length > 0 ? (
-                               <div className="flex flex-wrap gap-3">
-                                 {selectedCustomer.paymentDates.map((date, index) => (
-                                   <span key={index} className="px-4 py-2 bg-emerald-50 text-emerald-800 text-sm font-bold rounded-lg border border-emerald-200 shadow-sm flex items-center gap-2">
-                                     <span className="w-2 h-2 rounded-full bg-emerald-500"></span>
-                                     {date}
-                                   </span>
-                                 ))}
-                               </div>
-                            ) : (
-                              <p className="text-sm text-neutral-400 italic">Henüz ödeme tarihi girilmemiş.</p>
-                            )}
-                          </div>
-                        </div>
-                      )}
                     </div>
-                  )}
-                </div>
-              </div>
-            )}
-
-            {view === 'add-customer' && (
-              <AddCustomerForm 
-                onSuccess={() => setView('dashboard')} 
-                onCancel={() => setView('dashboard')}
-                db={db}
-                appId={appId}
-              />
-            )}
-          </div>
+                    <button type="submit" class="w-full bg-amber-600 hover:bg-amber-700 text-white font-bold py-4 rounded-xl shadow-lg transition-all mt-6">
+                        KAYDI TAMAMLA
+                    </button>
+                </form>
+            </div>
         </main>
-      </div>
-    </>
-  );
-}
-
-// --- İstatistik Kartı ---
-function StatCard({ title, value, icon, color }) {
-  return (
-    <div className={`p-6 rounded-xl border shadow-sm flex items-center justify-between transition-transform hover:scale-105 hover:shadow-lg ${color}`}>
-      <div>
-        <p className="text-neutral-400 text-[10px] font-bold uppercase tracking-widest">{title}</p>
-        <p className="text-2xl font-black text-neutral-800 mt-1 tracking-tight">{value}</p>
-      </div>
-      <div className="p-4 bg-neutral-50 rounded-full border border-neutral-100 shadow-inner">
-        {icon}
-      </div>
     </div>
-  );
-}
 
-// --- Yeni Müşteri Formu ---
-function AddCustomerForm({ onSuccess, onCancel, db, appId }) {
-  const [formData, setFormData] = useState({
-    firstName: '',
-    lastName: '',
-    phone: '',
-    transactionDate: new Date().toISOString().split('T')[0], 
-    transactionTime: '09:00',
-    totalPrice: '',
-    deposit: '',
-    imageUrl: '',
-    designer: '',
-    tattooArtist: '',
-    referralMethod: 'Kapı' 
-  });
-  
-  const [paymentDates, setPaymentDates] = useState([]);
-  const [currentPaymentDate, setCurrentPaymentDate] = useState('');
-  const [isSubmitting, setIsSubmitting] = useState(false);
+    <script>
+        const { createApp } = Vue;
 
-  const handleFileChange = (e) => {
-    const file = e.target.files[0];
-    if (file) {
-      if (file.size > 800 * 1024) {
-        alert("Lütfen 800KB'dan küçük bir resim seçiniz.");
-        return;
-      }
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setFormData({ ...formData, imageUrl: reader.result });
-      };
-      reader.readAsDataURL(file);
-    }
-  };
-
-  const handleAddPaymentDate = () => {
-    if (currentPaymentDate) {
-      setPaymentDates([...paymentDates, currentPaymentDate]);
-      setCurrentPaymentDate('');
-    }
-  };
-
-  const handleRemovePaymentDate = (index) => {
-    const newDates = [...paymentDates];
-    newDates.splice(index, 1);
-    setPaymentDates(newDates);
-  };
-
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    setIsSubmitting(true);
-
-    try {
-      await addDoc(collection(db, 'artifacts', appId, 'public', 'data', 'customers'), {
-        ...formData,
-        paymentDates: paymentDates,
-        createdAt: serverTimestamp(),
-        totalPrice: Number(formData.totalPrice),
-        deposit: Number(formData.deposit)
-      });
-      onSuccess();
-    } catch (error) {
-      console.error("Kayıt ekleme hatası:", error);
-      alert("Hata oluştu: " + error.message);
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
-
-  return (
-    <div className="max-w-4xl mx-auto">
-      <div className="bg-white rounded-2xl shadow-2xl border border-neutral-200 overflow-hidden">
-        {/* Header - GOLD/BLACK */}
-        <div className="bg-black p-8 text-white flex justify-between items-center relative overflow-hidden">
-          <div className="absolute top-0 right-0 w-64 h-64 bg-amber-600 rounded-full blur-[80px] opacity-20 pointer-events-none"></div>
-          <div className="relative z-10">
-             <h3 className="text-2xl font-black uppercase tracking-wider text-amber-500">YENİ KAYIT OLUŞTUR</h3>
-             <p className="text-neutral-400 mt-1 text-sm font-medium">Müşteri detaylarını aşağıya giriniz.</p>
-          </div>
-          <button onClick={onCancel} className="text-neutral-400 hover:text-white hover:bg-neutral-800 p-2 rounded-full transition-colors relative z-10">
-            <X size={28} />
-          </button>
-        </div>
-        
-        <form onSubmit={handleSubmit} className="p-10 grid grid-cols-1 md:grid-cols-2 gap-10 bg-neutral-50">
-          
-          {/* Sol Kolon */}
-          <div className="space-y-8">
-            <h4 className="text-sm font-bold text-neutral-800 border-b-2 border-amber-500/20 pb-3 mb-6 flex items-center gap-2 uppercase tracking-wider">
-              <Users size={18} className="text-amber-600" /> Kişisel Bilgiler
-            </h4>
-            
-            <div className="grid grid-cols-2 gap-5">
-              <div>
-                <label className="block text-xs font-bold text-neutral-600 mb-2 uppercase">İsim</label>
-                <input 
-                  required
-                  type="text" 
-                  className="w-full p-3 bg-white border border-neutral-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-amber-500 outline-none transition-all font-medium"
-                  placeholder="Ad"
-                  value={formData.firstName}
-                  onChange={(e) => setFormData({...formData, firstName: e.target.value})}
-                />
-              </div>
-              <div>
-                <label className="block text-xs font-bold text-neutral-600 mb-2 uppercase">Soyisim</label>
-                <input 
-                  required
-                  type="text" 
-                  className="w-full p-3 bg-white border border-neutral-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-amber-500 outline-none transition-all font-medium"
-                  placeholder="Soyad"
-                  value={formData.lastName}
-                  onChange={(e) => setFormData({...formData, lastName: e.target.value})}
-                />
-              </div>
-            </div>
-
-            <div>
-              <label className="block text-xs font-bold text-neutral-600 mb-2 uppercase">Telefon Numarası</label>
-              <div className="relative">
-                <Phone className="absolute left-3 top-1/2 transform -translate-y-1/2 text-neutral-400" size={18} />
-                <input 
-                  required
-                  type="tel" 
-                  className="w-full pl-10 p-3 bg-white border border-neutral-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-amber-500 outline-none transition-all font-medium"
-                  placeholder="0555 000 0000"
-                  value={formData.phone}
-                  onChange={(e) => setFormData({...formData, phone: e.target.value})}
-                />
-              </div>
-            </div>
-
-            <div className="grid grid-cols-2 gap-5">
-              <div>
-                <label className="block text-xs font-bold text-neutral-600 mb-2 uppercase">İşlem Tarihi</label>
-                <input 
-                  required
-                  type="date" 
-                  className="w-full p-3 bg-white border border-neutral-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-amber-500 outline-none font-medium"
-                  value={formData.transactionDate}
-                  onChange={(e) => setFormData({...formData, transactionDate: e.target.value})}
-                />
-              </div>
-              <div>
-                <label className="block text-xs font-bold text-neutral-600 mb-2 uppercase">İşlem Saati</label>
-                <input 
-                  required
-                  type="time" 
-                  className="w-full p-3 bg-white border border-neutral-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-amber-500 outline-none font-medium"
-                  value={formData.transactionTime}
-                  onChange={(e) => setFormData({...formData, transactionTime: e.target.value})}
-                />
-              </div>
-            </div>
-
-            <div className="bg-white p-6 rounded-xl border border-neutral-200 shadow-sm space-y-5">
-               <h5 className="text-xs font-black text-neutral-400 flex items-center gap-2 uppercase tracking-widest"><PenTool size={14} /> Sanatçı & Kaynak</h5>
-               
-               <div className="grid grid-cols-2 gap-5">
-                  <div>
-                    <label className="block text-xs font-bold text-neutral-600 mb-2 uppercase">Dövmeci</label>
-                    <input 
-                      type="text" 
-                      className="w-full p-2 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-amber-500 outline-none bg-neutral-50"
-                      placeholder="Dövmeci Adı"
-                      value={formData.tattooArtist}
-                      onChange={(e) => setFormData({...formData, tattooArtist: e.target.value})}
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-xs font-bold text-neutral-600 mb-2 uppercase">Tasarımcı</label>
-                    <input 
-                      type="text" 
-                      className="w-full p-2 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-amber-500 outline-none bg-neutral-50"
-                      placeholder="Tasarımcı Adı"
-                      value={formData.designer}
-                      onChange={(e) => setFormData({...formData, designer: e.target.value})}
-                    />
-                  </div>
-               </div>
-
-               <div>
-                  <label className="block text-xs font-bold text-neutral-600 mb-2 uppercase">Geliş Şekli</label>
-                  <div className="flex gap-4">
-                    <label className={`flex-1 flex items-center justify-center gap-2 p-3 rounded-lg border cursor-pointer transition-all ${formData.referralMethod === 'Kapı' ? 'bg-amber-50 border-amber-500 text-amber-800 font-bold shadow-sm' : 'bg-neutral-50 border-neutral-200 hover:bg-white'}`}>
-                      <input 
-                        type="radio" 
-                        name="referralMethod" 
-                        value="Kapı"
-                        className="hidden"
-                        checked={formData.referralMethod === 'Kapı'}
-                        onChange={(e) => setFormData({...formData, referralMethod: e.target.value})}
-                      />
-                      <MapPin size={16} /> KAPI
-                    </label>
-                    <label className={`flex-1 flex items-center justify-center gap-2 p-3 rounded-lg border cursor-pointer transition-all ${formData.referralMethod === 'Sosyal Medya' ? 'bg-purple-50 border-purple-500 text-purple-800 font-bold shadow-sm' : 'bg-neutral-50 border-neutral-200 hover:bg-white'}`}>
-                      <input 
-                        type="radio" 
-                        name="referralMethod" 
-                        value="Sosyal Medya"
-                        className="hidden"
-                        checked={formData.referralMethod === 'Sosyal Medya'}
-                        onChange={(e) => setFormData({...formData, referralMethod: e.target.value})}
-                      />
-                      <Users size={16} /> SOSYAL MEDYA
-                    </label>
-                  </div>
-               </div>
-            </div>
-          </div>
-
-          {/* Sağ Kolon */}
-          <div className="space-y-8">
-            <h4 className="text-sm font-bold text-neutral-800 border-b-2 border-amber-500/20 pb-3 mb-6 flex items-center gap-2 uppercase tracking-wider">
-              <CreditCard size={18} className="text-amber-600" /> Finansal & Medya
-            </h4>
-
-            <div className="grid grid-cols-2 gap-5">
-              <div>
-                <label className="block text-xs font-bold text-neutral-600 mb-2 uppercase">Toplam Tutar (₺)</label>
-                <input 
-                  required
-                  type="number" 
-                  min="0"
-                  className="w-full p-3 bg-white border border-neutral-300 rounded-lg focus:ring-2 focus:ring-amber-500 outline-none font-black text-lg"
-                  placeholder="0.00"
-                  value={formData.totalPrice}
-                  onChange={(e) => setFormData({...formData, totalPrice: e.target.value})}
-                />
-              </div>
-              <div>
-                <label className="block text-xs font-bold text-neutral-600 mb-2 uppercase">Alınan Kapora (₺)</label>
-                <input 
-                  type="number" 
-                  min="0"
-                  className="w-full p-3 bg-white border border-neutral-300 rounded-lg focus:ring-2 focus:ring-amber-500 outline-none font-black text-lg text-emerald-600"
-                  placeholder="0.00"
-                  value={formData.deposit}
-                  onChange={(e) => setFormData({...formData, deposit: e.target.value})}
-                />
-              </div>
-            </div>
-
-            <div className="bg-amber-50 p-6 rounded-xl border border-amber-100 shadow-sm">
-              <label className="block text-xs font-bold text-amber-800 mb-3 uppercase">Ödeme Alınan Tarihler</label>
-              <div className="flex gap-3 mb-3">
-                <input 
-                  type="date" 
-                  className="flex-1 p-2 border border-amber-200 rounded-lg text-sm focus:outline-none focus:border-amber-500 focus:ring-1 focus:ring-amber-500 bg-white"
-                  value={currentPaymentDate}
-                  onChange={(e) => setCurrentPaymentDate(e.target.value)}
-                />
-                <button 
-                  type="button"
-                  onClick={handleAddPaymentDate}
-                  className="px-4 py-2 bg-amber-500 text-white rounded-lg text-sm font-bold hover:bg-amber-600 shadow-md transition-transform active:scale-95"
-                >
-                  EKLE
-                </button>
-              </div>
-              <div className="flex flex-wrap gap-2 mt-2">
-                {paymentDates.map((date, idx) => (
-                  <span key={idx} className="bg-white border border-amber-200 text-amber-800 text-xs font-bold px-3 py-1.5 rounded-lg flex items-center gap-2 shadow-sm">
-                    {date}
-                    <button type="button" onClick={() => handleRemovePaymentDate(idx)} className="hover:text-red-500 transition-colors">
-                      <X size={14} />
-                    </button>
-                  </span>
-                ))}
-                {paymentDates.length === 0 && <span className="text-xs text-amber-800/50 font-medium italic px-1">Tarih eklenmedi.</span>}
-              </div>
-            </div>
-
-            <div>
-              <label className="block text-xs font-bold text-neutral-600 mb-2 uppercase">İş Görseli Yükle</label>
-              <div className="border-2 border-dashed border-neutral-300 rounded-xl p-6 hover:bg-white hover:border-amber-400 transition-all text-center cursor-pointer relative group bg-white">
-                <input 
-                  type="file" 
-                  accept="image/*"
-                  onChange={handleFileChange}
-                  className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
-                />
-                {formData.imageUrl ? (
-                  <div className="relative h-40 mx-auto">
-                     <img src={formData.imageUrl} alt="Önizleme" className="h-full mx-auto object-contain rounded-lg shadow-md" />
-                     <div className="absolute inset-0 bg-black/50 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity rounded-lg">
-                        <p className="text-white font-bold text-sm">Değiştirmek için tıklayın</p>
-                     </div>
-                  </div>
-                ) : (
-                  <div className="flex flex-col items-center justify-center py-4 text-neutral-400 group-hover:text-amber-500 transition-colors">
-                    <Upload size={40} className="mb-3" />
-                    <span className="text-sm font-bold uppercase">Görsel seçmek için tıklayın</span>
-                    <span className="text-[10px] font-medium mt-1 opacity-70">Maksimum 800KB (JPG, PNG)</span>
-                  </div>
-                )}
-              </div>
-            </div>
-
-          </div>
-
-          <div className="md:col-span-2 border-t border-neutral-200 pt-8 flex justify-end gap-5">
-            <button 
-              type="button" 
-              onClick={onCancel}
-              className="px-8 py-3 rounded-lg border border-neutral-300 text-neutral-600 font-bold hover:bg-neutral-100 transition-colors tracking-wide"
-            >
-              İPTAL
-            </button>
-            <button 
-              type="submit" 
-              disabled={isSubmitting}
-              className="px-10 py-3 rounded-lg bg-gradient-to-r from-amber-500 to-amber-600 text-white font-black shadow-lg hover:shadow-amber-500/30 hover:from-amber-600 hover:to-amber-700 transition-all flex items-center gap-3 disabled:opacity-70 disabled:cursor-not-allowed tracking-wider transform hover:-translate-y-0.5"
-            >
-              {isSubmitting ? 'KAYDEDİLİYOR...' : (
-                <>
-                  <Save size={20} />
-                  KAYDET
-                </>
-              )}
-            </button>
-          </div>
-        </form>
-      </div>
-    </div>
-  );
-}
-
-// --- DÜZENLEME FORMU ---
-function EditCustomerForm({ customer, onSave, onCancel }) {
-  // Müşteri verileriyle formu doldur
-  const [formData, setFormData] = useState({
-    firstName: customer.firstName || '',
-    lastName: customer.lastName || '',
-    phone: customer.phone || '',
-    transactionDate: customer.transactionDate || '',
-    transactionTime: customer.transactionTime || '',
-    totalPrice: customer.totalPrice || '',
-    deposit: customer.deposit || '',
-    imageUrl: customer.imageUrl || '',
-    designer: customer.designer || '',
-    tattooArtist: customer.tattooArtist || '',
-    referralMethod: customer.referralMethod || 'Kapı'
-  });
-  
-  const [paymentDates, setPaymentDates] = useState(customer.paymentDates || []);
-  const [currentPaymentDate, setCurrentPaymentDate] = useState('');
-  const [isSubmitting, setIsSubmitting] = useState(false);
-
-  const handleFileChange = (e) => {
-    const file = e.target.files[0];
-    if (file) {
-      if (file.size > 800 * 1024) {
-        alert("Lütfen 800KB'dan küçük bir resim seçiniz.");
-        return;
-      }
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setFormData({ ...formData, imageUrl: reader.result });
-      };
-      reader.readAsDataURL(file);
-    }
-  };
-
-  const handleAddPaymentDate = () => {
-    if (currentPaymentDate) {
-      setPaymentDates([...paymentDates, currentPaymentDate]);
-      setCurrentPaymentDate('');
-    }
-  };
-
-  const handleRemovePaymentDate = (index) => {
-    const newDates = [...paymentDates];
-    newDates.splice(index, 1);
-    setPaymentDates(newDates);
-  };
-
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    setIsSubmitting(true);
-    // Parent'a güncelleme verisini gönder
-    await onSave({
-      ...formData,
-      paymentDates: paymentDates,
-      totalPrice: Number(formData.totalPrice),
-      deposit: Number(formData.deposit)
-    });
-    setIsSubmitting(false);
-  };
-
-  return (
-    <form onSubmit={handleSubmit} className="space-y-6">
-      {/* İsim Soyisim */}
-      <div className="grid grid-cols-2 gap-4">
-        <div>
-           <label className="block text-[10px] font-bold text-neutral-500 uppercase mb-1">İsim</label>
-           <input type="text" className="w-full p-2 border border-neutral-300 rounded-md text-sm" required value={formData.firstName} onChange={e => setFormData({...formData, firstName: e.target.value})} />
-        </div>
-        <div>
-           <label className="block text-[10px] font-bold text-neutral-500 uppercase mb-1">Soyisim</label>
-           <input type="text" className="w-full p-2 border border-neutral-300 rounded-md text-sm" required value={formData.lastName} onChange={e => setFormData({...formData, lastName: e.target.value})} />
-        </div>
-      </div>
-
-      {/* Telefon */}
-      <div>
-         <label className="block text-[10px] font-bold text-neutral-500 uppercase mb-1">Telefon</label>
-         <input type="tel" className="w-full p-2 border border-neutral-300 rounded-md text-sm" required value={formData.phone} onChange={e => setFormData({...formData, phone: e.target.value})} />
-      </div>
-
-      {/* Tarih Saat */}
-      <div className="grid grid-cols-2 gap-4">
-        <div>
-           <label className="block text-[10px] font-bold text-neutral-500 uppercase mb-1">Tarih</label>
-           <input type="date" className="w-full p-2 border border-neutral-300 rounded-md text-sm" required value={formData.transactionDate} onChange={e => setFormData({...formData, transactionDate: e.target.value})} />
-        </div>
-        <div>
-           <label className="block text-[10px] font-bold text-neutral-500 uppercase mb-1">Saat</label>
-           <input type="time" className="w-full p-2 border border-neutral-300 rounded-md text-sm" required value={formData.transactionTime} onChange={e => setFormData({...formData, transactionTime: e.target.value})} />
-        </div>
-      </div>
-
-      {/* Sanatçılar */}
-      <div className="grid grid-cols-2 gap-4">
-         <div>
-           <label className="block text-[10px] font-bold text-neutral-500 uppercase mb-1">Dövmeci</label>
-           <input type="text" className="w-full p-2 border border-neutral-300 rounded-md text-sm" value={formData.tattooArtist} onChange={e => setFormData({...formData, tattooArtist: e.target.value})} />
-         </div>
-         <div>
-           <label className="block text-[10px] font-bold text-neutral-500 uppercase mb-1">Tasarımcı</label>
-           <input type="text" className="w-full p-2 border border-neutral-300 rounded-md text-sm" value={formData.designer} onChange={e => setFormData({...formData, designer: e.target.value})} />
-         </div>
-      </div>
-
-      {/* Finansal */}
-      <div className="grid grid-cols-2 gap-4">
-         <div>
-           <label className="block text-[10px] font-bold text-neutral-500 uppercase mb-1">Toplam (₺)</label>
-           <input type="number" className="w-full p-2 border border-neutral-300 rounded-md text-sm font-bold" required value={formData.totalPrice} onChange={e => setFormData({...formData, totalPrice: e.target.value})} />
-         </div>
-         <div>
-           <label className="block text-[10px] font-bold text-neutral-500 uppercase mb-1">Kapora (₺)</label>
-           <input type="number" className="w-full p-2 border border-neutral-300 rounded-md text-sm font-bold text-emerald-600" value={formData.deposit} onChange={e => setFormData({...formData, deposit: e.target.value})} />
-         </div>
-      </div>
-
-      {/* Ödeme Tarihleri */}
-      <div className="bg-amber-50 p-3 rounded-lg border border-amber-100">
-        <label className="block text-[10px] font-bold text-amber-800 mb-2 uppercase">Ödeme Tarihleri</label>
-        <div className="flex gap-2 mb-2">
-          <input type="date" className="flex-1 p-1 border border-amber-200 rounded text-xs" value={currentPaymentDate} onChange={e => setCurrentPaymentDate(e.target.value)} />
-          <button type="button" onClick={handleAddPaymentDate} className="px-3 py-1 bg-amber-500 text-white rounded text-xs font-bold hover:bg-amber-600">EKLE</button>
-        </div>
-        <div className="flex flex-wrap gap-1">
-          {paymentDates.map((date, idx) => (
-             <span key={idx} className="bg-white border border-amber-200 text-amber-800 text-xs px-2 py-0.5 rounded flex items-center gap-1">
-               {date} <button type="button" onClick={() => handleRemovePaymentDate(idx)}><X size={10} /></button>
-             </span>
-          ))}
-        </div>
-      </div>
-
-       {/* Görsel */}
-       <div>
-          <label className="block text-[10px] font-bold text-neutral-500 uppercase mb-1">Görsel (Değiştirmek için seçin)</label>
-          <input type="file" accept="image/*" onChange={handleFileChange} className="block w-full text-xs text-neutral-500 file:mr-2 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-xs file:font-semibold file:bg-amber-50 file:text-amber-700 hover:file:bg-amber-100"/>
-          {formData.imageUrl && <p className="text-[10px] text-green-600 mt-1">Mevcut görsel korunacak (yeni seçilmezse).</p>}
-       </div>
-
-       {/* Butonlar */}
-       <div className="flex justify-end gap-3 pt-4 border-t">
-         <button type="button" onClick={onCancel} className="px-4 py-2 text-xs font-bold text-neutral-600 hover:bg-neutral-100 rounded">İPTAL</button>
-         <button type="submit" disabled={isSubmitting} className="px-6 py-2 bg-amber-500 text-white text-xs font-bold rounded hover:bg-amber-600 shadow-md">
-            {isSubmitting ? 'KAYDEDİLİYOR...' : 'DEĞİŞİKLİKLERİ KAYDET'}
-         </button>
-       </div>
-    </form>
-  );
-}
+        createApp({
+            data() {
+                return {
+                    view: 'dashboard',
+                    search: '',
+                    // Verileri tarayıcı hafızasında saklıyoruz
+                    customers: JSON.parse(localStorage.getItem('ink_data') || '[]'),
+                    newCust: { name: '', phone: '', date: '', artist: '', price: 0, deposit: 0 }
+                }
+            },
+            computed: {
+                filteredCustomers() {
+                    return this.customers.filter(c => 
+                        c.name.toLowerCase().includes(this.search.toLowerCase()) || 
+                        c.phone.includes(this.search)
+                    );
+                },
+                totalRevenue() {
+                    return this.customers.reduce((sum, c) => sum + c.price, 0);
+                },
+                totalDeposit() {
+                    return this.customers.reduce((sum, c) => sum + c.deposit, 0);
+                }
+            },
+            methods: {
+                addCustomer() {
+                    const id = Date.now();
+                    this.customers.push({ id, ...this.newCust });
+                    this.saveData();
+                    this.view = 'dashboard';
+                    this.newCust = { name: '', phone: '', date: '', artist: '', price: 0, deposit: 0 };
+                    setTimeout(() => lucide.createIcons(), 10);
+                },
+                deleteCustomer(id) {
+                    if(confirm('Bu kaydı silmek istediğine emin misin?')) {
+                        this.customers = this.customers.filter(c => c.id !== id);
+                        this.saveData();
+                    }
+                },
+                saveData() {
+                    localStorage.setItem('ink_data', JSON.stringify(this.customers));
+                }
+            },
+            mounted() {
+                lucide.createIcons();
+            },
+            updated() {
+                lucide.createIcons();
+            }
+        }).mount('#app');
+    </script>
+</body>
+</html>
