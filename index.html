@@ -19,19 +19,27 @@
 <body>
     <div id="app">
         <aside class="w-64 bg-black border-r border-neutral-900 p-6 flex flex-col fixed h-full no-print">
-            <div class="mb-10 text-center">
-                <h1 class="text-amber-500 font-black text-3xl italic uppercase tracking-tighter">tolgattoo</h1>
-                <p class="text-[8px] text-neutral-600 tracking-[0.4em]">ELITE STUDIO OPS</p>
-            </div>
-            <nav class="space-y-2 flex-1">
-                <button @click="view = 'dashboard'" :class="view === 'dashboard' ? 'bg-amber-600 text-white shadow-lg shadow-amber-900/20' : 'text-neutral-500'" class="w-full flex items-center gap-3 px-4 py-3 rounded-2xl hover:bg-neutral-900 transition-all text-sm font-semibold">
-                    <i data-lucide="layout-dashboard"></i> Dashboard
-                </button>
-                <button @click="openAddView" :class="view === 'add-customer' ? 'bg-amber-600 text-white' : 'text-neutral-500'" class="w-full flex items-center gap-3 px-4 py-3 rounded-2xl hover:bg-neutral-900 transition-all text-sm font-semibold">
-                    <i data-lucide="plus"></i> Yeni İşlem
-                </button>
-            </nav>
-        </aside>
+    <div class="mb-10 text-center flex flex-col items-center">
+        <div class="w-24 h-24 mb-4 rounded-full border-2 border-amber-500/30 p-2 bg-gradient-to-b from-neutral-900 to-black flex items-center justify-center shadow-[0_0_20px_rgba(245,158,11,0.15)]">
+            <img src="logo.png" alt="tolgattoo" class="w-full h-full object-contain">
+        </div>
+        <h1 class="text-amber-500 font-black text-xl italic uppercase tracking-widest">tolgattoo</h1>
+        <div class="h-[1px] w-12 bg-amber-500/50 mt-2"></div>
+    </div>
+    
+    <nav class="space-y-3 flex-1">
+        <button @click="view = 'dashboard'" :class="view === 'dashboard' ? 'bg-amber-600 text-white shadow-[0_10px_20px_rgba(217,119,6,0.2)]' : 'text-neutral-500 hover:text-amber-500'" class="w-full flex items-center gap-3 px-5 py-4 rounded-2xl transition-all text-sm font-bold uppercase tracking-wider">
+            <i data-lucide="layout-dashboard" class="w-5 h-5"></i> Dashboard
+        </button>
+        <button @click="openAddView" :class="view === 'add-customer' ? 'bg-amber-600 text-white shadow-[0_10px_20px_rgba(217,119,6,0.2)]' : 'text-neutral-500 hover:text-amber-500'" class="w-full flex items-center gap-3 px-5 py-4 rounded-2xl transition-all text-sm font-bold uppercase tracking-wider">
+            <i data-lucide="plus" class="w-5 h-5"></i> Yeni İşlem
+        </button>
+    </nav>
+
+    <div class="mt-auto pt-6 border-t border-neutral-900">
+        <p class="text-[10px] text-neutral-700 text-center font-bold tracking-widest uppercase italic">Design by AI for tolgattoo</p>
+    </div>
+</aside>
 
         <main class="ml-64 p-8 no-print">
             <div v-if="loading" class="flex flex-col items-center justify-center h-96 text-amber-500 italic">
