@@ -3,25 +3,19 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>tolgattoo - Yönetim Paneli</title>
+    <title>tolgattoo - Cloud Panel</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap');
-        body { font-family: 'Inter', sans-serif; background-color: #0a0a0a; color: white; margin: 0; padding: 0; }
+        body { font-family: 'Inter', sans-serif; background-color: #0a0a0a; color: white; }
         .glass { background: rgba(255, 255, 255, 0.03); backdrop-filter: blur(12px); border: 1px solid rgba(255,255,255,0.08); }
-        .source-badge { font-size: 10px; padding: 2px 8px; border-radius: 20px; text-transform: uppercase; font-weight: bold; }
-        
-        /* YAZDIRMA AYARLARI */
         @media print {
-            body * { visibility: hidden; background: white !important; color: black !important; }
+            body * { visibility: hidden; }
             #print-area, #print-area * { visibility: visible; }
-            #print-area { position: absolute; left: 0; top: 0; width: 100%; padding: 20px; }
-            .no-print { display: none !important; }
+            #print-area { position: absolute; left: 0; top: 0; width: 100%; color: black; }
         }
-        
-        input[type="date"], input[type="time"], select { color-scheme: dark; }
     </style>
 </head>
 <body>
@@ -29,176 +23,121 @@
         <aside class="w-64 bg-black border-r border-neutral-900 p-6 flex flex-col fixed h-full no-print">
             <div class="mb-10 text-center">
                 <h1 class="text-amber-500 font-bold text-2xl tracking-tighter italic">tolgattoo</h1>
-                <p class="text-[10px] text-neutral-500 uppercase tracking-[0.2em]">Studio Management</p>
+                <span class="text-[10px] bg-amber-500/10 text-amber-500 px-2 py-1 rounded">CLOUD MODE</span>
             </div>
-
             <nav class="space-y-2 flex-1">
-                <button @click="view = 'dashboard'" :class="view === 'dashboard' ? 'bg-amber-600 text-white' : 'text-neutral-400 hover:bg-neutral-900'" class="w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all">
-                    <i data-lucide="layout-dashboard"></i> Genel Bakış
+                <button @click="view = 'dashboard'" :class="view === 'dashboard' ? 'bg-amber-600' : ''" class="w-full flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-neutral-900 transition-all text-sm font-medium">
+                    <i data-lucide="layout-dashboard"></i> Dashboard
                 </button>
-                <button @click="view = 'add-customer'" :class="view === 'add-customer' ? 'bg-amber-600 text-white' : 'text-neutral-400 hover:bg-neutral-900'" class="w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all">
-                    <i data-lucide="image-plus"></i> Yeni Kayıt Ekle
+                <button @click="view = 'add-customer'" :class="view === 'add-customer' ? 'bg-amber-600' : ''" class="w-full flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-neutral-900 transition-all text-sm font-medium">
+                    <i data-lucide="plus"></i> Yeni Kayıt
                 </button>
             </nav>
-            <div class="text-[10px] text-neutral-700 text-center italic">v1.4.0 • Edit & Print Ready</div>
         </aside>
 
         <main class="flex-1 ml-64 p-8 no-print">
-            <div v-if="view === 'dashboard'">
+            <div v-if="loading" class="flex items-center justify-center h-full text-amber-500 italic">Bulut verileri yükleniyor...</div>
+            
+            <div v-else-if="view === 'dashboard'">
                 <div class="flex justify-between items-center mb-8">
-                    <h2 class="text-3xl font-bold">Stüdyo Durumu</h2>
-                    <div class="glass p-2 rounded-2xl flex items-center gap-3 border border-amber-500/20">
-                        <input v-model="filterStart" type="date" class="bg-transparent text-xs outline-none text-amber-500 font-semibold px-2">
-                        <span class="text-neutral-700">-</span>
-                        <input v-model="filterEnd" type="date" class="bg-transparent text-xs outline-none text-amber-500 font-semibold px-2">
-                        <button v-if="filterStart || filterEnd" @click="clearFilters" class="text-red-500 p-1"><i data-lucide="x-circle" class="w-4 h-4"></i></button>
+                    <h2 class="text-3xl font-bold italic">Dashboard</h2>
+                    <div class="glass p-2 rounded-xl flex gap-2">
+                        <input v-model="filterStart" type="date" class="bg-transparent text-xs text-amber-500 outline-none">
+                        <input v-model="filterEnd" type="date" class="bg-transparent text-xs text-amber-500 outline-none">
                     </div>
                 </div>
 
                 <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
-                    <div class="glass p-6 rounded-2xl border-l-4 border-l-amber-500 shadow-xl">
-                        <p class="text-neutral-400 text-xs font-bold uppercase mb-1">Dönemlik Ciro</p>
+                    <div class="glass p-6 rounded-2xl border-l-4 border-l-amber-500">
+                        <p class="text-neutral-500 text-xs uppercase font-bold">Toplam Ciro</p>
                         <p class="text-3xl font-bold">{{ totalRevenue }} ₺</p>
                     </div>
-                    <div class="glass p-6 rounded-2xl border-l-4 border-l-emerald-500 shadow-xl">
-                        <p class="text-neutral-400 text-xs font-bold uppercase mb-1">Alınan Kapora</p>
+                    <div class="glass p-6 rounded-2xl border-l-4 border-l-emerald-500">
+                        <p class="text-neutral-500 text-xs uppercase font-bold">Kapora</p>
                         <p class="text-3xl font-bold">{{ totalDeposit }} ₺</p>
                     </div>
-                    <div class="glass p-6 rounded-2xl border-l-4 border-l-red-500 shadow-xl">
-                        <p class="text-neutral-400 text-xs font-bold uppercase mb-1">Beklenen Tahsilat</p>
-                        <p class="text-3xl font-bold">{{ totalRevenue - totalDeposit }} ₺</p>
+                    <div class="glass p-6 rounded-2xl border-l-4 border-l-red-500">
+                        <p class="text-neutral-500 text-xs uppercase font-bold">Kalan</p>
+                        <p class="text-3xl font-bold text-red-400">{{ totalRevenue - totalDeposit }} ₺</p>
                     </div>
                 </div>
 
-                <div class="glass rounded-2xl p-6">
-                    <input v-model="search" type="text" placeholder="Müşteri ismi ile ara..." class="w-full mb-6 bg-neutral-900 border border-neutral-800 rounded-xl px-4 py-3 focus:border-amber-500 outline-none">
-                    
-                    <div class="space-y-4">
-                        <div v-for="c in filteredCustomers" :key="c.id" class="flex items-center gap-4 p-4 bg-neutral-900/40 border border-neutral-800 rounded-2xl hover:bg-neutral-900/70 transition-all group">
-                            <div class="w-14 h-14 rounded-lg bg-neutral-800 flex-shrink-0 overflow-hidden border border-neutral-700">
-                                <img v-if="c.image" :src="c.image" class="w-full h-full object-cover">
-                                <div v-else class="w-full h-full flex items-center justify-center text-[8px] text-neutral-600">NO IMG</div>
-                            </div>
+                <div class="glass p-6 rounded-2xl">
+                    <input v-model="search" placeholder="İsim ara..." class="w-full mb-6 bg-neutral-900 border border-neutral-800 p-3 rounded-xl outline-none focus:border-amber-500">
+                    <div class="space-y-3">
+                        <div v-for="c in filteredCustomers" :key="c.id" class="flex items-center gap-4 p-4 bg-black/40 border border-neutral-800 rounded-xl hover:border-amber-500/50 transition-all">
+                            <img :src="c.image || 'https://via.placeholder.com/50'" class="w-12 h-12 object-cover rounded-lg">
                             <div class="flex-1">
-                                <div class="flex items-center gap-2">
-                                    <h4 class="font-bold text-amber-500 uppercase">{{ c.name }}</h4>
-                                    <span class="source-badge bg-neutral-800 text-neutral-400">{{ c.source }}</span>
-                                </div>
-                                <p class="text-xs text-neutral-400">{{ c.date }} • {{ c.time }} • <b>{{ c.artist }}</b></p>
+                                <p class="font-bold text-amber-500 uppercase">{{ c.name }}</p>
+                                <p class="text-xs text-neutral-500">{{ c.date }} | {{ c.time }} | {{ c.source }}</p>
                             </div>
-                            <div class="flex items-center gap-2">
-                                <div class="text-right mr-4">
-                                    <p class="font-bold text-lg leading-none">{{ c.price }} ₺</p>
-                                    <p class="text-[10px] text-emerald-500">K: {{ c.deposit }} ₺</p>
-                                </div>
-                                <div class="flex gap-1">
-                                    <button @click="openPrint(c)" class="p-2 bg-blue-500/10 text-blue-500 rounded-lg hover:bg-blue-500 hover:text-white transition-all" title="Yazdır">
-                                        <i data-lucide="printer" class="w-4 h-4"></i>
-                                    </button>
-                                    <button @click="startEdit(c)" class="p-2 bg-amber-500/10 text-amber-500 rounded-lg hover:bg-amber-500 hover:text-white transition-all" title="Düzenle">
-                                        <i data-lucide="edit-3" class="w-4 h-4"></i>
-                                    </button>
-                                    <button @click="deleteCustomer(c.id)" class="p-2 bg-red-500/10 text-red-500 rounded-lg hover:bg-red-500 hover:text-white transition-all" title="Sil">
-                                        <i data-lucide="trash-2" class="w-4 h-4"></i>
-                                    </button>
-                                </div>
+                            <div class="flex gap-2">
+                                <button @click="openPrint(c)" class="p-2 text-blue-500 hover:bg-blue-500/10 rounded-lg"><i data-lucide="printer" class="w-4 h-4"></i></button>
+                                <button @click="startEdit(c)" class="p-2 text-amber-500 hover:bg-amber-500/10 rounded-lg"><i data-lucide="edit-2" class="w-4 h-4"></i></button>
+                                <button @click="deleteCustomer(c.id)" class="p-2 text-red-500 hover:bg-red-500/10 rounded-lg"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
                             </div>
                         </div>
                     </div>
                 </div>
             </div>
 
-            <div v-if="view === 'add-customer' || view === 'edit-customer'" class="max-w-2xl mx-auto">
-                <div class="flex justify-between items-center mb-8">
-                    <h2 class="text-3xl font-bold text-amber-500">{{ view === 'edit-customer' ? 'Kaydı Düzenle' : 'Yeni Randevu' }}</h2>
-                    <button @click="view = 'dashboard'" class="text-neutral-500 hover:text-white">İptal</button>
-                </div>
-                
-                <form @submit.prevent="view === 'edit-customer' ? saveEdit() : addCustomer()" class="glass p-8 rounded-3xl space-y-5">
+            <div v-if="view === 'add-customer' || view === 'edit-customer'" class="max-w-xl mx-auto glass p-8 rounded-3xl">
+                <h2 class="text-2xl font-bold mb-6 text-amber-500 italic">{{ view === 'edit-customer' ? 'Düzenle' : 'Yeni Kayıt' }}</h2>
+                <form @submit.prevent="handleSubmit" class="space-y-4">
+                    <input v-model="form.name" placeholder="Ad Soyad" required class="w-full bg-neutral-900 border border-neutral-800 p-3 rounded-xl outline-none">
                     <div class="grid grid-cols-2 gap-4">
-                        <input v-model="form.name" placeholder="Müşteri Ad Soyad" required class="bg-neutral-900 border border-neutral-800 p-3 rounded-xl outline-none focus:border-amber-500">
-                        <select v-model="form.source" class="bg-neutral-900 border border-neutral-800 p-3 rounded-xl outline-none focus:border-amber-500 font-medium">
-                            <option value="Sosyal Medya">Sosyal Medya</option>
-                            <option value="Kapı Müşterisi">Kapı Müşterisi</option>
-                        </select>
+                        <input v-model="form.date" type="date" required class="bg-neutral-900 border border-neutral-800 p-3 rounded-xl outline-none">
+                        <input v-model="form.time" type="time" class="bg-neutral-900 border border-neutral-800 p-3 rounded-xl outline-none">
                     </div>
-                    <div class="grid grid-cols-3 gap-4">
-                        <input v-model="form.date" type="date" required class="bg-neutral-900 border border-neutral-800 p-3 rounded-xl outline-none focus:border-amber-500">
-                        <input v-model="form.time" type="time" class="bg-neutral-900 border border-neutral-800 p-3 rounded-xl outline-none focus:border-amber-500">
-                        <input v-model="form.artist" placeholder="Sanatçı" class="bg-neutral-900 border border-neutral-800 p-3 rounded-xl outline-none focus:border-amber-500">
+                    <div class="grid grid-cols-2 gap-4">
+                        <input v-model.number="form.price" type="number" placeholder="Toplam Fiyat" class="bg-neutral-900 border border-neutral-800 p-3 rounded-xl outline-none">
+                        <input v-model.number="form.deposit" type="number" placeholder="Kapora" class="bg-neutral-900 border border-neutral-800 p-3 rounded-xl outline-none">
                     </div>
-                    <div class="grid grid-cols-3 gap-4">
-                        <div class="space-y-1">
-                            <label class="text-[10px] text-neutral-500 uppercase ml-2">Toplam Fiyat</label>
-                            <input v-model.number="form.price" type="number" class="w-full bg-neutral-900 border border-neutral-800 p-3 rounded-xl outline-none">
-                        </div>
-                        <div class="space-y-1">
-                            <label class="text-[10px] text-neutral-500 uppercase ml-2">Kapora</label>
-                            <input v-model.number="form.deposit" type="number" class="w-full bg-neutral-900 border border-neutral-800 p-3 rounded-xl outline-none">
-                        </div>
-                        <div class="space-y-1">
-                            <label class="text-[10px] text-neutral-500 uppercase ml-2">Kapora Tarihi</label>
-                            <input v-model="form.depositDate" type="date" class="w-full bg-neutral-900 border border-neutral-800 p-3 rounded-xl outline-none">
-                        </div>
-                    </div>
-                    <div class="p-6 bg-neutral-900/50 border-2 border-dashed border-neutral-800 rounded-2xl flex items-center gap-4">
-                        <input type="file" @change="handleFileUpload" class="text-xs text-neutral-500">
-                        <img v-if="form.image" :src="form.image" class="w-20 h-20 object-cover rounded shadow-xl border border-amber-500">
-                    </div>
-                    <button type="submit" class="w-full bg-amber-600 hover:bg-amber-700 text-white font-bold py-4 rounded-xl shadow-xl transition-all uppercase tracking-widest">
-                        {{ view === 'edit-customer' ? 'Değişiklikleri Kaydet' : 'Randevuyu Oluştur' }}
+                    <select v-model="form.source" class="w-full bg-neutral-900 border border-neutral-800 p-3 rounded-xl outline-none">
+                        <option value="Sosyal Medya">Sosyal Medya</option>
+                        <option value="Kapı Müşterisi">Kapı Müşterisi</option>
+                    </select>
+                    <input type="file" @change="handleFileUpload" class="text-xs text-neutral-500">
+                    <button type="submit" :disabled="saving" class="w-full bg-amber-600 p-4 rounded-xl font-bold hover:bg-amber-700 transition-all">
+                        {{ saving ? 'Kaydediliyor...' : 'Sisteme Gönder' }}
                     </button>
                 </form>
             </div>
         </main>
 
         <div id="print-area" class="hidden">
-            <div style="text-align: center; border-bottom: 2px solid black; padding-bottom: 20px; margin-bottom: 20px;">
-                <h1 style="font-size: 28px; margin: 0; font-style: italic;">TOLGATTOO STUDIO</h1>
-                <p style="font-size: 12px; margin: 5px 0;">Profesyonel Dövme Stüdyosu</p>
-                <p style="font-size: 10px;">Fiş No: #{{ printData.id }} | Tarih: {{ new Date().toLocaleDateString() }}</p>
-            </div>
-            <div style="margin-bottom: 20px;">
-                <h3 style="border-bottom: 1px solid #ccc; padding-bottom: 5px;">MÜŞTERİ & RANDEVU</h3>
-                <p><b>Müşteri:</b> {{ printData.name }}</p>
-                <p><b>Tarih/Saat:</b> {{ printData.date }} - {{ printData.time }}</p>
-                <p><b>Sanatçı:</b> {{ printData.artist }}</p>
-            </div>
-            <div style="background: #f9f9f9; padding: 15px; border-radius: 10px; border: 1px solid black;">
-                <h3 style="margin-top: 0;">ÖDEME DETAYI</h3>
-                <div style="display: flex; justify-between; border-bottom: 1px dashed #000; padding: 5px 0;">
-                    <span>Toplam Hizmet Bedeli:</span>
-                    <span style="float: right;">{{ printData.price }} ₺</span>
-                </div>
-                <div style="display: flex; justify-between; border-bottom: 1px dashed #000; padding: 5px 0; color: green;">
-                    <span>Alınan Kapora:</span>
-                    <span style="float: right;">- {{ printData.deposit }} ₺</span>
-                </div>
-                <div style="display: flex; justify-between; padding: 10px 0; font-size: 20px; font-weight: bold;">
-                    <span>KALAN BAKİYE:</span>
-                    <span style="float: right;">{{ printData.price - printData.deposit }} ₺</span>
-                </div>
-            </div>
-            <div style="margin-top: 40px; text-align: center; font-size: 10px;">
-                <p>Bizi tercih ettiğiniz için teşekkürler!</p>
-                <p>@tolgattoo</p>
-            </div>
+            <h1>TOLGATTOO STUDIO</h1>
+            <p>Müşteri: {{ printData.name }}</p>
+            <p>Tarih: {{ printData.date }} - {{ printData.time }}</p>
+            <p>Toplam: {{ printData.price }} ₺ | Kapora: {{ printData.deposit }} ₺</p>
+            <p>Kalan: {{ printData.price - printData.deposit }} ₺</p>
         </div>
     </div>
 
-    <script>
-        const { createApp } = Vue;
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+        import { getFirestore, collection, addDoc, getDocs, deleteDoc, doc, updateDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
+        const firebaseConfig = {
+            apiKey: "BURAYA-API-KEY-GELECEK",
+            authDomain: "PROJE-ADIN.firebaseapp.com",
+            projectId: "PROJE-ADIN",
+            storageBucket: "PROJE-ADIN.appspot.com",
+            messagingSenderId: "ID-NUMARASI",
+            appId: "APP-ID-NUMARASI"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+        const colRef = collection(db, "customers");
+
+        const { createApp } = Vue;
         createApp({
             data() {
                 return {
-                    view: 'dashboard',
-                    search: '',
-                    filterStart: '',
-                    filterEnd: '',
-                    customers: JSON.parse(localStorage.getItem('tolgattoo_v4') || '[]'),
-                    form: { id: null, name: '', date: '', time: '', artist: '', price: 0, deposit: 0, depositDate: '', image: '', source: 'Sosyal Medya' },
-                    printData: {}
+                    view: 'dashboard', loading: true, saving: false, search: '', filterStart: '', filterEnd: '',
+                    customers: [], printData: {},
+                    form: { name: '', date: '', time: '', artist: '', price: 0, deposit: 0, source: 'Sosyal Medya', image: '' }
                 }
             },
             computed: {
@@ -206,58 +145,45 @@
                     let res = this.customers.filter(c => c.name.toLowerCase().includes(this.search.toLowerCase()));
                     if (this.filterStart) res = res.filter(c => c.date >= this.filterStart);
                     if (this.filterEnd) res = res.filter(c => c.date <= this.filterEnd);
-                    return res.sort((a,b) => new Date(b.date + ' ' + b.time) - new Date(a.date + ' ' + a.time));
+                    return res.sort((a,b) => b.createdAt - a.createdAt);
                 },
-                totalRevenue() { return this.filteredCustomers.reduce((s, c) => s + (c.price || 0), 0); },
-                totalDeposit() { return this.filteredCustomers.reduce((s, c) => s + (c.deposit || 0), 0); }
+                totalRevenue() { return this.filteredCustomers.reduce((s,c) => s + (c.price || 0), 0); },
+                totalDeposit() { return this.filteredCustomers.reduce((s,c) => s + (c.deposit || 0), 0); }
             },
             methods: {
+                async handleSubmit() {
+                    this.saving = true;
+                    try {
+                        if (this.view === 'edit-customer') {
+                            const { id, ...data } = this.form;
+                            await updateDoc(doc(db, "customers", id), data);
+                        } else {
+                            await addDoc(colRef, { ...this.form, createdAt: Date.now() });
+                        }
+                        this.view = 'dashboard';
+                        this.resetForm();
+                    } catch (e) { alert("Hata: " + e.message); }
+                    this.saving = false;
+                },
+                async deleteCustomer(id) {
+                    if (confirm("Silinsin mi?")) await deleteDoc(doc(db, "customers", id));
+                },
+                startEdit(c) { this.form = { ...c }; this.view = 'edit-customer'; },
                 handleFileUpload(e) {
-                    const file = e.target.files[0];
-                    if (file) {
-                        const r = new FileReader();
-                        r.onload = (ev) => this.form.image = ev.target.result;
-                        r.readAsDataURL(file);
-                    }
+                    const reader = new FileReader();
+                    reader.onload = (ev) => this.form.image = ev.target.result;
+                    reader.readAsDataURL(e.target.files[0]);
                 },
-                addCustomer() {
-                    const id = Date.now();
-                    this.customers.push({ ...this.form, id });
-                    this.save();
-                    this.resetAndDash();
-                },
-                startEdit(customer) {
-                    this.form = { ...customer };
-                    this.view = 'edit-customer';
-                },
-                saveEdit() {
-                    const index = this.customers.findIndex(c => c.id === this.form.id);
-                    if (index !== -1) {
-                        this.customers[index] = { ...this.form };
-                        this.save();
-                        this.resetAndDash();
-                    }
-                },
-                deleteCustomer(id) {
-                    if (confirm('Kaydı silmek istediğine emin misin?')) {
-                        this.customers = this.customers.filter(c => c.id !== id);
-                        this.save();
-                    }
-                },
-                openPrint(customer) {
-                    this.printData = customer;
-                    setTimeout(() => { window.print(); }, 200);
-                },
-                save() { localStorage.setItem('tolgattoo_v4', JSON.stringify(this.customers)); },
-                resetAndDash() {
-                    this.form = { id: null, name: '', date: '', time: '', artist: '', price: 0, deposit: 0, depositDate: '', image: '', source: 'Sosyal Medya' };
-                    this.view = 'dashboard';
-                    setTimeout(() => lucide.createIcons(), 100);
-                },
-                clearFilters() { this.filterStart = ''; this.filterEnd = ''; }
+                openPrint(c) { this.printData = c; setTimeout(() => window.print(), 200); },
+                resetForm() { this.form = { name: '', date: '', time: '', artist: '', price: 0, deposit: 0, source: 'Sosyal Medya', image: '' }; }
             },
-            mounted() { lucide.createIcons(); },
-            updated() { lucide.createIcons(); }
+            mounted() {
+                onSnapshot(colRef, (snap) => {
+                    this.customers = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+                    this.loading = false;
+                    setTimeout(() => lucide.createIcons(), 100);
+                });
+            }
         }).mount('#app');
     </script>
 </body>
