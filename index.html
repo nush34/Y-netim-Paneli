@@ -3,171 +3,171 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>tolgattoo - Full Management v1.7</title>
+    <title>tolgattoo - Ultra Studio Cloud</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap');
-        body { font-family: 'Inter', sans-serif; background-color: #0a0a0a; color: white; }
-        .glass { background: rgba(255, 255, 255, 0.03); backdrop-filter: blur(12px); border: 1px solid rgba(255,255,255,0.08); }
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;900&display=swap');
+        body { font-family: 'Inter', sans-serif; background-color: #050505; color: white; }
+        .glass { background: rgba(255, 255, 255, 0.02); backdrop-filter: blur(15px); border: 1px solid rgba(255,255,255,0.08); }
+        .zoom-overlay { background: rgba(0,0,0,0.95); transition: all 0.3s ease; }
         input, select { color-scheme: dark; }
-        @media print {
-            body * { visibility: hidden; background: white !important; color: black !important; }
-            #print-area, #print-area * { visibility: visible; }
-            #print-area { position: absolute; left: 0; top: 0; width: 100%; padding: 40px; }
-            .no-print { display: none !important; }
-        }
+        @media print { .no-print { display: none !important; } #print-area { display: block !important; color: black !important; } }
     </style>
 </head>
 <body>
-    <div id="app" class="flex min-h-screen">
+    <div id="app">
         <aside class="w-64 bg-black border-r border-neutral-900 p-6 flex flex-col fixed h-full no-print">
             <div class="mb-10 text-center">
-                <h1 class="text-amber-500 font-bold text-2xl tracking-tighter italic">tolgattoo</h1>
-                <p class="text-[10px] text-neutral-500 uppercase tracking-widest">Management System</p>
+                <h1 class="text-amber-500 font-black text-3xl italic uppercase tracking-tighter">tolgattoo</h1>
+                <p class="text-[8px] text-neutral-600 tracking-[0.4em]">ELITE STUDIO OPS</p>
             </div>
             <nav class="space-y-2 flex-1">
-                <button @click="view = 'dashboard'" :class="view === 'dashboard' ? 'bg-amber-600 text-white' : 'text-neutral-400'" class="w-full flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-neutral-900 transition-all text-sm">
-                    <i data-lucide="layout-dashboard"></i> Genel Bakış
+                <button @click="view = 'dashboard'" :class="view === 'dashboard' ? 'bg-amber-600 text-white shadow-lg shadow-amber-900/20' : 'text-neutral-500'" class="w-full flex items-center gap-3 px-4 py-3 rounded-2xl hover:bg-neutral-900 transition-all text-sm font-semibold">
+                    <i data-lucide="layout-dashboard"></i> Dashboard
                 </button>
-                <button @click="openAddView" :class="view === 'add-customer' ? 'bg-amber-600 text-white' : 'text-neutral-400'" class="w-full flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-neutral-900 transition-all text-sm">
-                    <i data-lucide="plus-circle"></i> Yeni Kayıt
+                <button @click="openAddView" :class="view === 'add-customer' ? 'bg-amber-600 text-white' : 'text-neutral-500'" class="w-full flex items-center gap-3 px-4 py-3 rounded-2xl hover:bg-neutral-900 transition-all text-sm font-semibold">
+                    <i data-lucide="plus"></i> Yeni İşlem
                 </button>
             </nav>
         </aside>
 
-        <main class="flex-1 ml-64 p-8 no-print">
-            <div v-if="loading" class="flex flex-col items-center justify-center h-64 text-amber-500 italic">
-                <div class="animate-spin mb-4 text-amber-500"><i data-lucide="refresh-cw"></i></div>
-                Veriler Buluttan Senkronize Ediliyor...
+        <main class="ml-64 p-8 no-print">
+            <div v-if="loading" class="flex flex-col items-center justify-center h-96 text-amber-500 italic">
+                <div class="animate-spin mb-4"><i data-lucide="refresh-cw" class="w-8 h-8"></i></div>
+                Sistem Senkronize Ediliyor...
             </div>
 
             <div v-else-if="view === 'dashboard'">
-                <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
-                    <div class="glass p-5 rounded-2xl border-l-4 border-l-amber-500">
-                        <p class="text-neutral-500 text-[10px] font-bold uppercase">Ciro</p>
-                        <p class="text-2xl font-bold">{{ totalRevenue }} ₺</p>
+                <div class="flex justify-between items-end mb-8">
+                    <div>
+                        <h2 class="text-4xl font-black italic uppercase tracking-tight">Akış</h2>
+                        <p class="text-neutral-500 text-xs">Stüdyo finansal ve randevu takibi</p>
                     </div>
-                    <div class="glass p-5 rounded-2xl border-l-4 border-l-emerald-500">
-                        <p class="text-neutral-500 text-[10px] font-bold uppercase">Kapora</p>
-                        <p class="text-2xl font-bold text-emerald-400">{{ totalDeposit }} ₺</p>
-                    </div>
-                    <div class="glass p-5 rounded-2xl border-l-4 border-l-red-500">
-                        <p class="text-neutral-500 text-[10px] font-bold uppercase">Kalan</p>
-                        <p class="text-2xl font-bold text-red-400">{{ totalRevenue - totalDeposit }} ₺</p>
-                    </div>
-                    <div class="glass p-5 rounded-2xl border-l-4 border-l-blue-500">
-                        <p class="text-neutral-500 text-[10px] font-bold uppercase">Yarın</p>
-                        <p class="text-2xl font-bold text-blue-400">{{ tomorrowAppointments.length }} Randevu</p>
+                    <div class="glass p-2 rounded-2xl flex items-center gap-2">
+                        <input v-model="filterStart" type="date" class="bg-transparent text-xs text-amber-500 outline-none p-1">
+                        <i data-lucide="arrow-right" class="w-3 h-3 text-neutral-700"></i>
+                        <input v-model="filterEnd" type="date" class="bg-transparent text-xs text-amber-500 outline-none p-1">
                     </div>
                 </div>
 
-                <div class="glass p-6 rounded-2xl">
-                    <input v-model="search" placeholder="İsim, telefon veya dövmeci ara..." class="w-full mb-6 bg-neutral-900 border border-neutral-800 p-3 rounded-xl outline-none focus:border-amber-500">
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
+                    <div class="glass p-6 rounded-3xl border-l-4 border-l-amber-600">
+                        <p class="text-neutral-500 text-[10px] font-bold uppercase tracking-widest">Brüt Ciro</p>
+                        <p class="text-3xl font-black mt-1">{{ totalRevenue }} ₺</p>
+                    </div>
+                    <div class="glass p-6 rounded-3xl border-l-4 border-l-emerald-600">
+                        <p class="text-neutral-500 text-[10px] font-bold uppercase tracking-widest">Tahsil Edilen</p>
+                        <p class="text-3xl font-black text-emerald-500 mt-1">{{ totalPaid }} ₺</p>
+                    </div>
+                    <div class="glass p-6 rounded-3xl border-l-4 border-l-red-600">
+                        <p class="text-neutral-500 text-[10px] font-bold uppercase tracking-widest">Kalan Alacak</p>
+                        <p class="text-3xl font-black text-red-500 mt-1">{{ totalRevenue - totalPaid }} ₺</p>
+                    </div>
+                </div>
+
+                <div class="glass p-6 rounded-3xl">
+                    <input v-model="search" placeholder="Müşteri, sanatçı veya tasarım..." class="w-full bg-neutral-900/50 border border-neutral-800 p-4 rounded-2xl mb-6 outline-none focus:border-amber-500 transition-all">
                     
-                    <div class="space-y-4">
-                        <div v-for="c in filteredCustomers" :key="c.id" class="flex items-center gap-4 p-4 bg-neutral-900/40 border border-neutral-800 rounded-2xl hover:bg-neutral-900 transition-all">
-                            <img :src="c.image || 'https://via.placeholder.com/60/111/333?text=N/A'" class="w-14 h-14 object-cover rounded-xl border border-neutral-700">
-                            <div class="flex-1">
-                                <div class="flex items-center gap-2">
-                                    <p class="font-bold text-amber-500 uppercase">{{ c.name }}</p>
-                                    <span v-if="isTomorrow(c.date)" class="text-[8px] bg-blue-600 px-2 py-0.5 rounded text-white font-bold">YARIN</span>
+                    <div class="space-y-3">
+                        <div v-for="c in filteredCustomers" :key="c.id" class="flex items-center gap-5 p-4 bg-white/[0.02] border border-white/[0.05] rounded-3xl hover:bg-white/[0.04] transition-all group">
+                            <div class="relative w-16 h-16 shrink-0 cursor-zoom-in" @click="zoomedImg = c.image">
+                                <img :src="c.image || 'https://via.placeholder.com/100/111/333?text=IMG'" class="w-full h-full object-cover rounded-2xl border border-white/10">
+                                <div class="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity bg-black/40 rounded-2xl">
+                                    <i data-lucide="maximize-2" class="w-4 h-4"></i>
                                 </div>
-                                <p class="text-xs text-neutral-400">
-                                    {{ c.date }} • {{ c.time }} | 🎨 {{ c.designer || 'N/A' }} | 🖋️ {{ c.artist }}
-                                </p>
                             </div>
-                            <div class="flex items-center gap-1">
-                                <button v-if="isTomorrow(c.date)" @click="sendWhatsApp(c)" class="p-2 text-emerald-500 hover:bg-emerald-500/10 rounded-lg" title="WhatsApp Hatırlat">
-                                    <i data-lucide="message-circle" class="w-5 h-5"></i>
-                                </button>
-                                <button @click="openPrint(c)" class="p-2 text-blue-400 hover:bg-blue-400/10 rounded-lg"><i data-lucide="printer" class="w-5 h-5"></i></button>
-                                <button @click="startEdit(c)" class="p-2 text-amber-500 hover:bg-amber-500/10 rounded-lg"><i data-lucide="edit-3" class="w-5 h-5"></i></button>
-                                <button @click="deleteCustomer(c.id)" class="p-2 text-red-500 hover:bg-red-500/10 rounded-lg"><i data-lucide="trash-2" class="w-5 h-5"></i></button>
+
+                            <div class="flex-1">
+                                <h4 class="font-bold text-lg leading-tight">{{ c.name }} <span class="text-[10px] text-neutral-600 ml-2">#{{ c.id.slice(0,4) }}</span></h4>
+                                <p class="text-xs text-neutral-500 mt-1">
+                                    <span class="text-amber-500 font-bold tracking-tighter">{{ c.date }} {{ c.time }}</span> 
+                                    • 🖋️ {{ c.artist }} 
+                                    • 🎨 {{ c.designer || 'Standart' }}
+                                </p>
+                                <div class="flex gap-1 mt-2">
+                                    <span v-for="p in c.payments" class="text-[9px] bg-emerald-500/10 text-emerald-500 px-2 py-0.5 rounded-full border border-emerald-500/20">
+                                        {{ p.amount }}₺ ({{ p.date.split('-').reverse().slice(0,2).join('.') }})
+                                    </span>
+                                </div>
+                            </div>
+
+                            <div class="text-right flex flex-col items-end gap-2">
+                                <div class="mb-1">
+                                    <p class="text-2xl font-black leading-none">{{ c.price }} ₺</p>
+                                    <p class="text-[10px] font-bold" :class="calculatePaid(c) >= c.price ? 'text-emerald-500' : 'text-red-500'">
+                                        {{ calculatePaid(c) >= c.price ? 'ÖDENDİ' : (c.price - calculatePaid(c)) + ' ₺ KALDI' }}
+                                    </p>
+                                </div>
+                                <div class="flex gap-1">
+                                    <button @click="sendCareGuide(c)" class="p-2 text-amber-400 hover:bg-amber-400/10 rounded-xl" title="Bakım Rehberi Gönder"><i data-lucide="sparkles" class="w-5 h-5"></i></button>
+                                    <button @click="sendWhatsApp(c)" class="p-2 text-emerald-500 hover:bg-emerald-500/10 rounded-xl"><i data-lucide="message-circle" class="w-5 h-5"></i></button>
+                                    <button @click="openPrint(c)" class="p-2 text-blue-400 hover:bg-blue-400/10 rounded-xl"><i data-lucide="printer" class="w-5 h-5"></i></button>
+                                    <button @click="startEdit(c)" class="p-2 text-neutral-400 hover:bg-white/10 rounded-xl"><i data-lucide="settings-2" class="w-5 h-5"></i></button>
+                                    <button @click="deleteCustomer(c.id)" class="p-2 text-red-500 hover:bg-red-500/10 rounded-xl"><i data-lucide="trash" class="w-5 h-5"></i></button>
+                                </div>
                             </div>
                         </div>
                     </div>
                 </div>
             </div>
 
-            <div v-if="view === 'add-customer' || view === 'edit-customer'" class="max-w-2xl mx-auto glass p-8 rounded-3xl">
-                <div class="flex justify-between items-center mb-6">
-                    <h2 class="text-2xl font-bold italic text-amber-500">{{ view === 'edit-customer' ? 'Kayıt Düzenle' : 'Yeni Randevu' }}</h2>
+            <div v-if="view === 'add-customer' || view === 'edit-customer'" class="max-w-4xl mx-auto glass p-10 rounded-[3rem]">
+                <div class="flex justify-between items-center mb-10">
+                    <h2 class="text-3xl font-black italic uppercase">{{ view === 'edit-customer' ? 'Kayıt Düzenle' : 'Yeni Randevu' }}</h2>
                     <button @click="view = 'dashboard'" class="text-neutral-500 hover:text-white"><i data-lucide="x"></i></button>
                 </div>
                 
-                <form @submit.prevent="handleSubmit" class="space-y-4">
-                    <div class="grid grid-cols-2 gap-4">
-                        <input v-model="form.name" placeholder="Ad Soyad" required class="bg-neutral-900 border border-neutral-800 p-3 rounded-xl outline-none focus:border-amber-500">
-                        <input v-model="form.phone" placeholder="Telefon (0 olmadan)" class="bg-neutral-900 border border-neutral-800 p-3 rounded-xl outline-none focus:border-amber-500">
-                    </div>
-                    <div class="grid grid-cols-2 gap-4">
-                        <input v-model="form.designer" placeholder="Tasarımcı Bilgisi" class="bg-neutral-900 border border-neutral-800 p-3 rounded-xl outline-none focus:border-amber-500">
-                        <input v-model="form.artist" placeholder="Dövmeci Bilgisi" required class="bg-neutral-900 border border-neutral-800 p-3 rounded-xl outline-none focus:border-amber-500">
-                    </div>
-                    <div class="grid grid-cols-3 gap-4">
-                        <input v-model="form.date" type="date" required class="bg-neutral-900 border border-neutral-800 p-3 rounded-xl outline-none focus:border-amber-500">
-                        <input v-model="form.time" type="time" class="bg-neutral-900 border border-neutral-800 p-3 rounded-xl outline-none focus:border-amber-500">
-                        <select v-model="form.source" class="bg-neutral-900 border border-neutral-800 p-3 rounded-xl outline-none focus:border-amber-500">
-                            <option value="Sosyal Medya">Sosyal Medya</option>
-                            <option value="Kapı Müşterisi">Kapı Müşterisi</option>
-                        </select>
-                    </div>
-                    <div class="grid grid-cols-3 gap-4">
-                        <div class="space-y-1">
-                            <label class="text-[10px] text-neutral-500 uppercase ml-2">Toplam Fiyat</label>
-                            <input v-model.number="form.price" type="number" class="w-full bg-neutral-900 border border-neutral-800 p-3 rounded-xl outline-none focus:border-amber-500">
+                <form @submit.prevent="handleSubmit" class="space-y-8">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                        <div class="space-y-4">
+                            <input v-model="form.name" placeholder="Müşteri Ad Soyad" required class="w-full bg-neutral-900/50 border border-neutral-800 p-4 rounded-2xl outline-none">
+                            <input v-model="form.phone" placeholder="Telefon No" class="w-full bg-neutral-900/50 border border-neutral-800 p-4 rounded-2xl outline-none">
+                            <div class="grid grid-cols-2 gap-4">
+                                <input v-model="form.date" type="date" required class="bg-neutral-900/50 border border-neutral-800 p-4 rounded-2xl outline-none">
+                                <input v-model="form.time" type="time" class="bg-neutral-900/50 border border-neutral-800 p-4 rounded-2xl outline-none">
+                            </div>
+                            <div class="relative group aspect-square rounded-[2rem] overflow-hidden bg-neutral-900 border-2 border-dashed border-neutral-800 flex flex-col items-center justify-center">
+                                <img v-if="form.image" :src="form.image" class="w-full h-full object-cover">
+                                <div v-else class="text-center p-6">
+                                    <i data-lucide="image" class="w-12 h-12 mx-auto mb-2 text-neutral-700"></i>
+                                    <p class="text-xs text-neutral-600">Referans Görsel Yükle</p>
+                                </div>
+                                <input type="file" @change="handleFileUpload" class="absolute inset-0 opacity-0 cursor-pointer">
+                            </div>
                         </div>
-                        <div class="space-y-1">
-                            <label class="text-[10px] text-neutral-500 uppercase ml-2">Kapora</label>
-                            <input v-model.number="form.deposit" type="number" class="w-full bg-neutral-900 border border-neutral-800 p-3 rounded-xl outline-none focus:border-amber-500">
-                        </div>
-                        <div class="space-y-1">
-                            <label class="text-[10px] text-neutral-500 uppercase ml-2">Kapora Tarihi</label>
-                            <input v-model="form.depositDate" type="date" class="w-full bg-neutral-900 border border-neutral-800 p-3 rounded-xl outline-none focus:border-amber-500">
+
+                        <div class="space-y-6">
+                            <div class="space-y-3">
+                                <input v-model="form.artist" placeholder="Dövmeyi Yapan (Artist)" class="w-full bg-neutral-900/50 border border-neutral-800 p-4 rounded-2xl outline-none">
+                                <input v-model="form.designer" placeholder="Tasarımcı (Designer)" class="w-full bg-neutral-900/50 border border-neutral-800 p-4 rounded-2xl outline-none">
+                                <input v-model.number="form.price" type="number" placeholder="TOPLAM HİZMET BEDELİ" class="w-full bg-amber-600/10 border border-amber-500/30 p-4 rounded-2xl outline-none text-amber-500 font-black text-xl">
+                            </div>
+
+                            <div class="space-y-4">
+                                <h5 class="text-xs font-bold text-neutral-500 uppercase tracking-widest flex justify-between">
+                                    Ödeme Kayıtları 
+                                    <button type="button" @click="addPaymentField" class="text-emerald-500">+ Ödeme Ekle</button>
+                                </h5>
+                                <div v-for="(pay, idx) in form.payments" :key="idx" class="flex gap-2 animate-in slide-in-from-right-2">
+                                    <input v-model.number="pay.amount" type="number" placeholder="₺" class="w-24 bg-black border border-neutral-800 p-2 rounded-xl text-sm">
+                                    <input v-model="pay.date" type="date" class="flex-1 bg-black border border-neutral-800 p-2 rounded-xl text-sm">
+                                    <button @click="form.payments.splice(idx,1)" class="text-red-500"><i data-lucide="minus-circle" class="w-4 h-4"></i></button>
+                                </div>
+                            </div>
                         </div>
                     </div>
 
-                    <div class="p-6 border-2 border-dashed border-neutral-800 rounded-2xl flex items-center justify-between gap-4 bg-black/20 group hover:border-amber-500/50 transition-all">
-                        <div class="flex flex-col gap-1">
-                            <label class="text-xs font-bold text-amber-500">Tasarım Görseli</label>
-                            <input type="file" @change="handleFileUpload" accept="image/*" class="text-xs text-neutral-500">
-                        </div>
-                        <div v-if="form.image" class="relative">
-                            <img :src="form.image" class="w-20 h-20 object-cover rounded-lg border border-amber-500/50">
-                            <button @click.prevent="form.image = ''" class="absolute -top-2 -right-2 bg-red-500 rounded-full p-1"><i data-lucide="x" class="w-3 h-3"></i></button>
-                        </div>
-                    </div>
-
-                    <button type="submit" :disabled="saving" class="w-full bg-amber-600 p-4 rounded-xl font-bold uppercase tracking-widest hover:bg-amber-700 transition-all flex justify-center gap-2">
-                        <i v-if="saving" data-lucide="loader-2" class="animate-spin"></i>
-                        {{ saving ? 'KAYDEDİLİYOR...' : (view === 'edit-customer' ? 'GÜNCELLEMEYİ KAYDET' : 'RANDEVUYU ONAYLA') }}
+                    <button type="submit" :disabled="saving" class="w-full bg-amber-600 hover:bg-amber-500 p-6 rounded-[2rem] font-black text-lg tracking-[0.3em] transition-all shadow-2xl shadow-amber-900/20">
+                        {{ saving ? 'İŞLENİYOR...' : 'SİSTEMİ GÜNCELLE' }}
                     </button>
                 </form>
             </div>
         </main>
 
-        <div id="print-area" class="hidden">
-            <h1 style="text-align:center; font-size: 32px; font-style: italic; margin-bottom:0;">TOLGATTOO STUDIO</h1>
-            <p style="text-align:center; margin-top:0; font-size:12px;">Randevu ve Tahsilat Makbuzu</p>
-            <hr style="border:1px solid #000; margin: 20px 0;">
-            <div style="display:flex; justify-content:space-between;">
-                <div>
-                    <p><b>Müşteri:</b> {{ printData.name }}</p>
-                    <p><b>Tarih:</b> {{ printData.date }} | {{ printData.time }}</p>
-                    <p><b>Tasarımcı:</b> {{ printData.designer }}</p>
-                    <p><b>Sanatçı:</b> {{ printData.artist }}</p>
-                </div>
-                <div v-if="printData.image">
-                    <img :src="printData.image" style="width:120px; height:120px; object-fit:cover; border:1px solid #000;">
-                </div>
-            </div>
-            <div style="margin-top:30px; border:2px solid #000; padding:20px; background:#f0f0f0;">
-                <p style="font-size:18px; margin:5px 0;">Toplam Hizmet Bedeli: <span style="float:right;">{{ printData.price }} ₺</span></p>
-                <p style="font-size:18px; margin:5px 0; color:green;">Ödenen Kapora: <span style="float:right;">- {{ printData.deposit }} ₺</span></p>
-                <h2 style="border-top:2px solid #000; padding-top:10px; margin-top:10px;">KALAN BAKİYE: <span style="float:right;">{{ printData.price - printData.deposit }} ₺</span></h2>
-            </div>
+        <div v-if="zoomedImg" @click="zoomedImg = null" class="fixed inset-0 z-[999] zoom-overlay flex items-center justify-center p-6">
+            <img :src="zoomedImg" class="max-w-full max-h-full rounded-3xl shadow-2xl border border-white/10 animate-in zoom-in-90 duration-300">
         </div>
     </div>
 
@@ -193,63 +193,54 @@
             data() {
                 return {
                     view: 'dashboard', loading: true, saving: false, search: '',
+                    filterStart: '', filterEnd: '', zoomedImg: null,
                     customers: [], printData: {},
-                    form: { id: null, name: '', phone: '', date: '', time: '', artist: '', designer: '', price: 0, deposit: 0, depositDate: '', source: 'Sosyal Medya', image: '' }
+                    form: { id: null, name: '', phone: '', date: '', time: '', artist: '', designer: '', price: 0, payments: [], image: '' }
                 }
             },
             computed: {
                 filteredCustomers() {
-                    return this.customers.filter(c => 
-                        c.name?.toLowerCase().includes(this.search.toLowerCase()) ||
-                        c.artist?.toLowerCase().includes(this.search.toLowerCase())
-                    );
-                },
-                tomorrowAppointments() {
-                    return this.customers.filter(c => this.isTomorrow(c.date));
+                    let list = this.customers.filter(c => c.name?.toLowerCase().includes(this.search.toLowerCase()) || c.artist?.toLowerCase().includes(this.search.toLowerCase()));
+                    if (this.filterStart) list = list.filter(c => c.date >= this.filterStart);
+                    if (this.filterEnd) list = list.filter(c => c.date <= this.filterEnd);
+                    return list;
                 },
                 totalRevenue() { return this.filteredCustomers.reduce((s,c) => s + (Number(c.price) || 0), 0); },
-                totalDeposit() { return this.filteredCustomers.reduce((s,c) => s + (Number(c.deposit) || 0), 0); }
+                totalPaid() { return this.filteredCustomers.reduce((s,c) => s + this.calculatePaid(c), 0); }
             },
             methods: {
-                isTomorrow(dateStr) {
-                    const today = new Date();
-                    const tomorrow = new Date(today);
-                    tomorrow.setDate(today.getDate() + 1);
-                    return dateStr === tomorrow.toISOString().split('T')[0];
+                calculatePaid(c) {
+                    return (c.payments || []).reduce((s, p) => s + (Number(p.amount) || 0), 0);
+                },
+                addPaymentField() {
+                    this.form.payments.push({ amount: 0, date: new Date().toISOString().split('T')[0] });
+                },
+                sendCareGuide(c) {
+                    const text = `Selam ${c.name} ✨ Yeni dövmen hayırlı olsun! Dövmenin kusursuz iyileşmesi için şu rehberi mutlaka oku:\n\n1. Bandajı 2 saat sonra çıkar.\n2. Ilık su ve kokusuz sabunla yıka.\n3. Günde 3 kez ince tabaka merhem sür.\n\nDetaylı Bakım Rehberi: https://tolgattoo.com/care (BURAYI DEĞİŞTİR)\n\nBol şans! 🖋️`;
+                    this.triggerWhatsApp(c.phone, text);
                 },
                 sendWhatsApp(c) {
-                    const text = `Selam ${c.name}, Inkstation'dan yazıyoruz. Yarın saat ${c.time || '--:--'}'de randevunuzu hatırlatmak istedim. Görüşmek üzere! 🖋️`;
-                    let phone = c.phone.replace(/\s+/g, '');
-                    if(!phone.startsWith('90') && phone.startsWith('5')) phone = '90' + phone;
-                    window.open(`https://wa.me/${phone}?text=${encodeURIComponent(text)}`, '_blank');
+                    const text = `Selam ${c.name}, tolgattoo randevunuzu (${c.date} saat ${c.time}) hatırlatmak istedik. Görüşmek üzere! 🖋️`;
+                    this.triggerWhatsApp(c.phone, text);
+                },
+                triggerWhatsApp(phone, text) {
+                    let p = phone.replace(/\D/g,'');
+                    if(p.startsWith('5')) p = '90' + p;
+                    window.open(`https://wa.me/${p}?text=${encodeURIComponent(text)}`, '_blank');
                 },
                 async handleSubmit() {
                     this.saving = true;
-                    try {
-                        const { id, ...data } = this.form;
-                        if (this.view === 'edit-customer' && id) {
-                            await updateDoc(doc(db, "customers", id), data);
-                        } else {
-                            await addDoc(colRef, { ...data, createdAt: Date.now() });
-                        }
-                        this.view = 'dashboard';
-                        this.resetForm();
-                    } catch (e) { alert("Hata oluştu: " + e.message); }
+                    const { id, ...data } = this.form;
+                    if (id) await updateDoc(doc(db, "customers", id), data);
+                    else await addDoc(colRef, { ...data, createdAt: Date.now() });
+                    this.view = 'dashboard';
                     this.saving = false;
                 },
-                async deleteCustomer(id) {
-                    if (confirm("Bu randevu kaydını kalıcı olarak silmek istiyor musun?")) {
-                        await deleteDoc(doc(db, "customers", id));
-                    }
-                },
-                startEdit(c) {
-                    this.form = JSON.parse(JSON.stringify(c)); // Kopya oluştur
-                    this.view = 'edit-customer';
-                    window.scrollTo(0,0);
-                },
-                openAddView() {
-                    this.resetForm();
-                    this.view = 'add-customer';
+                async deleteCustomer(id) { if(confirm("Kayıt silinsin mi?")) await deleteDoc(doc(db, "customers", id)); },
+                startEdit(c) { this.form = JSON.parse(JSON.stringify(c)); this.view = 'edit-customer'; },
+                openAddView() { 
+                    this.form = { id: null, name: '', phone: '', date: '', time: '', artist: '', designer: '', price: 0, payments: [{amount:0, date: new Date().toISOString().split('T')[0]}], image: '' };
+                    this.view = 'add-customer'; 
                 },
                 handleFileUpload(e) {
                     const file = e.target.files[0];
@@ -258,21 +249,13 @@
                         reader.onload = (ev) => this.form.image = ev.target.result;
                         reader.readAsDataURL(file);
                     }
-                },
-                openPrint(c) {
-                    this.printData = c;
-                    setTimeout(() => { window.print(); }, 500);
-                },
-                resetForm() {
-                    this.form = { id: null, name: '', phone: '', date: '', time: '', artist: '', designer: '', price: 0, deposit: 0, depositDate: '', source: 'Sosyal Medya', image: '' };
                 }
             },
             mounted() {
-                const q = query(colRef, orderBy("date", "asc"));
-                onSnapshot(q, (snap) => {
+                onSnapshot(query(colRef, orderBy("date", "desc")), (snap) => {
                     this.customers = snap.docs.map(d => ({ id: d.id, ...d.data() }));
                     this.loading = false;
-                    setTimeout(() => lucide.createIcons(), 100);
+                    setTimeout(() => lucide.createIcons(), 200);
                 });
             },
             updated() { lucide.createIcons(); }
