@@ -3,112 +3,144 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Ink Station - Yönetim Paneli</title>
+    <title>tolgattoo - Yönetim Paneli</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap');
-        body { font-family: 'Inter', sans-serif; background-color: #0f0f0f; color: white; }
-        .glass { background: rgba(255, 255, 255, 0.05); backdrop-filter: blur(10px); border: 1px solid rgba(255,255,255,0.1); }
+        body { font-family: 'Inter', sans-serif; background-color: #0a0a0a; color: white; }
+        .glass { background: rgba(255, 255, 255, 0.03); backdrop-filter: blur(12px); border: 1px solid rgba(255,255,255,0.08); }
+        input[type="file"]::file-selector-button {
+            background: #d97706; border: none; padding: 8px 16px; border-radius: 8px; color: white; cursor: pointer; margin-right: 10px;
+        }
     </style>
 </head>
 <body>
     <div id="app" class="flex min-h-screen">
-        <aside class="w-64 bg-black border-r border-neutral-800 p-6 flex flex-col">
+        <aside class="w-64 bg-black border-r border-neutral-900 p-6 flex flex-col">
             <div class="mb-10 text-center">
-                <h1 class="text-amber-500 font-bold text-xl tracking-tighter italic">INK STATION</h1>
-                <p class="text-[10px] text-neutral-500 uppercase tracking-widest">Studio Management</p>
+                <h1 class="text-amber-500 font-bold text-2xl tracking-tighter italic">tolgattoo</h1>
+                <p class="text-[10px] text-neutral-500 uppercase tracking-[0.2em]">Studio Management</p>
             </div>
 
             <nav class="space-y-2 flex-1">
-                <button @click="view = 'dashboard'" :class="view === 'dashboard' ? 'bg-amber-600 text-white' : 'text-neutral-400 hover:bg-neutral-900'" class="w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all">
+                <button @click="view = 'dashboard'" :class="view === 'dashboard' ? 'bg-amber-600 text-white shadow-lg shadow-amber-900/20' : 'text-neutral-400 hover:bg-neutral-900'" class="w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all">
                     <i data-lucide="layout-dashboard"></i> Genel Bakış
                 </button>
-                <button @click="view = 'add-customer'" :class="view === 'add-customer' ? 'bg-amber-600 text-white' : 'text-neutral-400 hover:bg-neutral-900'" class="w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all">
-                    <i data-lucide="plus-circle"></i> Yeni Kayıt Ekle
+                <button @click="view = 'add-customer'" :class="view === 'add-customer' ? 'bg-amber-600 text-white shadow-lg shadow-amber-900/20' : 'text-neutral-400 hover:bg-neutral-900'" class="w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all">
+                    <i data-lucide="image-plus"></i> Yeni Kayıt Ekle
                 </button>
             </nav>
 
-            <div class="text-[10px] text-neutral-600 text-center">v1.0.0 • Offline Mode</div>
+            <div class="text-[10px] text-neutral-700 text-center">v1.1.0 • Tolgattoo Studio</div>
         </aside>
 
         <main class="flex-1 p-8 overflow-y-auto">
             <div v-if="view === 'dashboard'">
-                <h2 class="text-3xl font-bold mb-8">Stüdyo Durumu</h2>
+                <div class="flex justify-between items-end mb-8">
+                    <h2 class="text-3xl font-bold">Stüdyo Durumu</h2>
+                    <p class="text-neutral-500 text-sm">{{ customers.length }} toplam kayıt</p>
+                </div>
                 
                 <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
-                    <div class="glass p-6 rounded-2xl">
-                        <p class="text-neutral-400 text-sm">Toplam Beklenen</p>
-                        <p class="text-3xl font-bold text-amber-500">{{ totalRevenue }} ₺</p>
+                    <div class="glass p-6 rounded-2xl border-l-4 border-l-amber-500">
+                        <p class="text-neutral-400 text-sm">Toplam Ciro</p>
+                        <p class="text-3xl font-bold text-white">{{ totalRevenue }} ₺</p>
                     </div>
-                    <div class="glass p-6 rounded-2xl">
-                        <p class="text-neutral-400 text-sm">Alınan Kaporalar</p>
-                        <p class="text-3xl font-bold text-emerald-500">{{ totalDeposit }} ₺</p>
+                    <div class="glass p-6 rounded-2xl border-l-4 border-l-emerald-500">
+                        <p class="text-neutral-400 text-sm">Alınan Kapora</p>
+                        <p class="text-3xl font-bold text-white">{{ totalDeposit }} ₺</p>
                     </div>
-                    <div class="glass p-6 rounded-2xl">
-                        <p class="text-neutral-400 text-sm">Aktif Randevular</p>
-                        <p class="text-3xl font-bold text-indigo-500">{{ customers.length }}</p>
+                    <div class="glass p-6 rounded-2xl border-l-4 border-l-red-500">
+                        <p class="text-neutral-400 text-sm">Kalan Bakiye</p>
+                        <p class="text-3xl font-bold text-white">{{ totalRevenue - totalDeposit }} ₺</p>
                     </div>
                 </div>
 
                 <div class="glass rounded-2xl p-6">
                     <div class="flex justify-between items-center mb-6">
                         <h3 class="font-bold text-lg">Müşteri Listesi</h3>
-                        <input v-model="search" type="text" placeholder="İsim veya telefon ara..." class="bg-neutral-900 border border-neutral-800 rounded-lg px-4 py-2 text-sm focus:outline-none focus:border-amber-500">
+                        <input v-model="search" type="text" placeholder="İsim veya telefon..." class="bg-neutral-900 border border-neutral-800 rounded-lg px-4 py-2 text-sm focus:outline-none focus:border-amber-500 w-64">
                     </div>
 
-                    <div class="space-y-3">
-                        <div v-for="c in filteredCustomers" :key="c.id" class="flex items-center justify-between p-4 bg-neutral-900/50 border border-neutral-800 rounded-xl hover:border-amber-500/50 transition-all">
-                            <div>
-                                <p class="font-semibold">{{ c.name }}</p>
-                                <p class="text-xs text-neutral-500">{{ c.date }} - {{ c.artist }}</p>
+                    <div class="grid grid-cols-1 gap-4">
+                        <div v-for="c in filteredCustomers" :key="c.id" class="flex items-center gap-4 p-4 bg-neutral-900/30 border border-neutral-800 rounded-xl hover:bg-neutral-900/60 transition-all">
+                            <div class="w-16 h-16 rounded-lg bg-neutral-800 overflow-hidden flex-shrink-0 border border-neutral-700">
+                                <img v-if="c.image" :src="c.image" class="w-full h-full object-cover">
+                                <div v-else class="w-full h-full flex items-center justify-center text-neutral-600 italic text-[10px]">Görsel Yok</div>
                             </div>
-                            <div class="text-right">
-                                <p class="font-bold text-amber-500">{{ c.price }} ₺</p>
-                                <button @click="deleteCustomer(c.id)" class="text-[10px] text-red-500 hover:underline">SİL</button>
+
+                            <div class="flex-1">
+                                <p class="font-bold text-amber-500 uppercase text-sm">{{ c.name }}</p>
+                                <p class="text-xs text-neutral-400 italic">{{ c.artist }} - {{ c.date }}</p>
+                                <p v-if="c.depositDate" class="text-[10px] text-emerald-500/80">Kapora Tarihi: {{ c.depositDate }}</p>
+                            </div>
+
+                            <div class="text-right flex flex-col items-end gap-2">
+                                <p class="font-bold">{{ c.price }} ₺</p>
+                                <button @click="deleteCustomer(c.id)" class="p-2 hover:bg-red-500/20 text-red-500 rounded-lg transition-colors">
+                                    <i data-lucide="trash-2" class="w-4 h-4"></i>
+                                </button>
                             </div>
                         </div>
-                        <p v-if="filteredCustomers.length === 0" class="text-center text-neutral-600 py-10">Henüz kayıtlı müşteri yok.</p>
+                        <p v-if="filteredCustomers.length === 0" class="text-center text-neutral-600 py-10 italic">Sonuç bulunamadı.</p>
                     </div>
                 </div>
             </div>
 
-            <div v-if="view === 'add-customer'" class="max-w-2xl mx-auto">
-                <h2 class="text-3xl font-bold mb-8 text-center">Yeni Kayıt Oluştur</h2>
-                <form @submit.prevent="addCustomer" class="glass p-8 rounded-3xl space-y-4">
-                    <div class="grid grid-cols-2 gap-4">
-                        <div class="space-y-1">
-                            <label class="text-xs text-neutral-400 uppercase">Ad Soyad</label>
+            <div v-if="view === 'add-customer'" class="max-w-3xl mx-auto">
+                <h2 class="text-3xl font-bold mb-8 text-center text-amber-500">Tolgattoo Yeni Kayıt</h2>
+                <form @submit.prevent="addCustomer" class="glass p-8 rounded-3xl space-y-6">
+                    <div class="grid grid-cols-2 gap-6">
+                        <div class="space-y-2">
+                            <label class="text-xs text-neutral-400 uppercase tracking-widest">Müşteri Ad Soyad</label>
                             <input v-model="newCust.name" required type="text" class="w-full bg-neutral-900 border border-neutral-800 rounded-xl p-3 focus:border-amber-500 outline-none">
                         </div>
-                        <div class="space-y-1">
-                            <label class="text-xs text-neutral-400 uppercase">Telefon</label>
-                            <input v-model="newCust.phone" type="text" class="w-full bg-neutral-900 border border-neutral-800 rounded-xl p-3 focus:border-amber-500 outline-none">
+                        <div class="space-y-2">
+                            <label class="text-xs text-neutral-400 uppercase tracking-widest">Telefon</label>
+                            <input v-model="newCust.phone" type="text" placeholder="05xx..." class="w-full bg-neutral-900 border border-neutral-800 rounded-xl p-3 focus:border-amber-500 outline-none">
                         </div>
                     </div>
-                    <div class="grid grid-cols-2 gap-4">
-                        <div class="space-y-1">
-                            <label class="text-xs text-neutral-400 uppercase">Tarih</label>
-                            <input v-model="newCust.date" type="date" class="w-full bg-neutral-900 border border-neutral-800 rounded-xl p-3 focus:border-amber-500 outline-none">
+
+                    <div class="grid grid-cols-3 gap-4">
+                        <div class="space-y-2">
+                            <label class="text-xs text-neutral-400 uppercase tracking-widest">Randevu Tarihi</label>
+                            <input v-model="newCust.date" type="date" class="w-full bg-neutral-900 border border-neutral-800 rounded-xl p-3 focus:border-amber-500 outline-none text-sm">
                         </div>
-                        <div class="space-y-1">
-                            <label class="text-xs text-neutral-400 uppercase">Sanatçı</label>
+                        <div class="space-y-2">
+                            <label class="text-xs text-neutral-400 uppercase tracking-widest">Kapora Alınan Tarih</label>
+                            <input v-model="newCust.depositDate" type="date" class="w-full bg-neutral-900 border border-neutral-800 rounded-xl p-3 focus:border-amber-500 outline-none text-sm">
+                        </div>
+                        <div class="space-y-2">
+                            <label class="text-xs text-neutral-400 uppercase tracking-widest">Dövmeci/Sanatçı</label>
                             <input v-model="newCust.artist" type="text" class="w-full bg-neutral-900 border border-neutral-800 rounded-xl p-3 focus:border-amber-500 outline-none">
                         </div>
                     </div>
-                    <div class="grid grid-cols-2 gap-4">
-                        <div class="space-y-1">
-                            <label class="text-xs text-neutral-400 uppercase">Toplam Fiyat (₺)</label>
+
+                    <div class="grid grid-cols-2 gap-6">
+                        <div class="space-y-2">
+                            <label class="text-xs text-neutral-400 uppercase tracking-widest">Toplam Ücret (₺)</label>
                             <input v-model.number="newCust.price" type="number" class="w-full bg-neutral-900 border border-neutral-800 rounded-xl p-3 focus:border-amber-500 outline-none">
                         </div>
-                        <div class="space-y-1">
-                            <label class="text-xs text-neutral-400 uppercase">Kapora (₺)</label>
+                        <div class="space-y-2">
+                            <label class="text-xs text-neutral-400 uppercase tracking-widest">Alınan Kapora (₺)</label>
                             <input v-model.number="newCust.deposit" type="number" class="w-full bg-neutral-900 border border-neutral-800 rounded-xl p-3 focus:border-amber-500 outline-none">
                         </div>
                     </div>
-                    <button type="submit" class="w-full bg-amber-600 hover:bg-amber-700 text-white font-bold py-4 rounded-xl shadow-lg transition-all mt-6">
-                        KAYDI TAMAMLA
+
+                    <div class="space-y-2">
+                        <label class="text-xs text-neutral-400 uppercase tracking-widest">Tasarım Görseli</label>
+                        <div class="flex items-center gap-4 p-4 bg-neutral-900/50 border-2 border-dashed border-neutral-800 rounded-xl">
+                            <input type="file" @change="handleFileUpload" accept="image/*" class="text-xs text-neutral-400">
+                            <div v-if="newCust.image" class="w-20 h-20 rounded shadow-2xl border border-amber-500/50 overflow-hidden">
+                                <img :src="newCust.image" class="w-full h-full object-cover">
+                            </div>
+                        </div>
+                    </div>
+
+                    <button type="submit" class="w-full bg-amber-600 hover:bg-amber-700 text-white font-bold py-4 rounded-xl shadow-xl transition-all mt-6 uppercase tracking-widest">
+                        Kayıt Et ve Listeye Dön
                     </button>
                 </form>
             </div>
@@ -123,9 +155,11 @@
                 return {
                     view: 'dashboard',
                     search: '',
-                    // Verileri tarayıcı hafızasında saklıyoruz
-                    customers: JSON.parse(localStorage.getItem('ink_data') || '[]'),
-                    newCust: { name: '', phone: '', date: '', artist: '', price: 0, deposit: 0 }
+                    customers: JSON.parse(localStorage.getItem('tolgattoo_data') || '[]'),
+                    newCust: { 
+                        name: '', phone: '', date: '', depositDate: '', 
+                        artist: '', price: 0, deposit: 0, image: '' 
+                    }
                 }
             },
             computed: {
@@ -133,32 +167,48 @@
                     return this.customers.filter(c => 
                         c.name.toLowerCase().includes(this.search.toLowerCase()) || 
                         c.phone.includes(this.search)
-                    );
+                    ).reverse(); // En yeni en üstte
                 },
                 totalRevenue() {
-                    return this.customers.reduce((sum, c) => sum + c.price, 0);
+                    return this.customers.reduce((sum, c) => sum + (c.price || 0), 0);
                 },
                 totalDeposit() {
-                    return this.customers.reduce((sum, c) => sum + c.deposit, 0);
+                    return this.customers.reduce((sum, c) => sum + (c.deposit || 0), 0);
                 }
             },
             methods: {
+                handleFileUpload(event) {
+                    const file = event.target.files[0];
+                    if (file) {
+                        const reader = new FileReader();
+                        reader.onload = (e) => {
+                            this.newCust.image = e.target.result;
+                        };
+                        reader.readAsDataURL(file);
+                    }
+                },
                 addCustomer() {
                     const id = Date.now();
                     this.customers.push({ id, ...this.newCust });
                     this.saveData();
                     this.view = 'dashboard';
-                    this.newCust = { name: '', phone: '', date: '', artist: '', price: 0, deposit: 0 };
-                    setTimeout(() => lucide.createIcons(), 10);
+                    this.resetForm();
+                    setTimeout(() => lucide.createIcons(), 50);
                 },
                 deleteCustomer(id) {
-                    if(confirm('Bu kaydı silmek istediğine emin misin?')) {
+                    if(confirm('Kayıt silinsin mi?')) {
                         this.customers = this.customers.filter(c => c.id !== id);
                         this.saveData();
                     }
                 },
                 saveData() {
-                    localStorage.setItem('ink_data', JSON.stringify(this.customers));
+                    localStorage.setItem('tolgattoo_data', JSON.stringify(this.customers));
+                },
+                resetForm() {
+                    this.newCust = { 
+                        name: '', phone: '', date: '', depositDate: '', 
+                        artist: '', price: 0, deposit: 0, image: '' 
+                    };
                 }
             },
             mounted() {
