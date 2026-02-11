@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>tolgattoo - Cloud Panel</title>
+    <title>tolgattoo - Cloud Panel v1.5</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
@@ -11,10 +11,11 @@
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap');
         body { font-family: 'Inter', sans-serif; background-color: #0a0a0a; color: white; }
         .glass { background: rgba(255, 255, 255, 0.03); backdrop-filter: blur(12px); border: 1px solid rgba(255,255,255,0.08); }
+        input, select { color-scheme: dark; }
         @media print {
             body * { visibility: hidden; }
             #print-area, #print-area * { visibility: visible; }
-            #print-area { position: absolute; left: 0; top: 0; width: 100%; color: black; }
+            #print-area { position: absolute; left: 0; top: 0; width: 100%; color: black !important; }
         }
     </style>
 </head>
@@ -23,57 +24,73 @@
         <aside class="w-64 bg-black border-r border-neutral-900 p-6 flex flex-col fixed h-full no-print">
             <div class="mb-10 text-center">
                 <h1 class="text-amber-500 font-bold text-2xl tracking-tighter italic">tolgattoo</h1>
-                <span class="text-[10px] bg-amber-500/10 text-amber-500 px-2 py-1 rounded">CLOUD MODE</span>
+                <p class="text-[10px] text-neutral-500 uppercase tracking-widest">Cloud Database</p>
             </div>
             <nav class="space-y-2 flex-1">
-                <button @click="view = 'dashboard'" :class="view === 'dashboard' ? 'bg-amber-600' : ''" class="w-full flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-neutral-900 transition-all text-sm font-medium">
+                <button @click="view = 'dashboard'" :class="view === 'dashboard' ? 'bg-amber-600' : 'text-neutral-400'" class="w-full flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-neutral-900 transition-all text-sm">
                     <i data-lucide="layout-dashboard"></i> Dashboard
                 </button>
-                <button @click="view = 'add-customer'" :class="view === 'add-customer' ? 'bg-amber-600' : ''" class="w-full flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-neutral-900 transition-all text-sm font-medium">
-                    <i data-lucide="plus"></i> Yeni Kayıt
+                <button @click="openAddView" :class="view === 'add-customer' ? 'bg-amber-600' : 'text-neutral-400'" class="w-full flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-neutral-900 transition-all text-sm">
+                    <i data-lucide="plus-circle"></i> Yeni Kayıt
                 </button>
             </nav>
         </aside>
 
         <main class="flex-1 ml-64 p-8 no-print">
-            <div v-if="loading" class="flex items-center justify-center h-full text-amber-500 italic">Bulut verileri yükleniyor...</div>
-            
+            <div v-if="loading" class="flex flex-col items-center justify-center h-64 text-amber-500 italic">
+                <div class="animate-spin mb-4"><i data-lucide="refresh-cw"></i></div>
+                Veriler Buluttan Çekiliyor...
+            </div>
+
             <div v-else-if="view === 'dashboard'">
                 <div class="flex justify-between items-center mb-8">
-                    <h2 class="text-3xl font-bold italic">Dashboard</h2>
+                    <h2 class="text-3xl font-bold">Stüdyo Durumu</h2>
                     <div class="glass p-2 rounded-xl flex gap-2">
-                        <input v-model="filterStart" type="date" class="bg-transparent text-xs text-amber-500 outline-none">
-                        <input v-model="filterEnd" type="date" class="bg-transparent text-xs text-amber-500 outline-none">
+                        <input v-model="filterStart" type="date" class="bg-transparent text-xs text-amber-500 outline-none p-1">
+                        <span class="text-neutral-600">/</span>
+                        <input v-model="filterEnd" type="date" class="bg-transparent text-xs text-amber-500 outline-none p-1">
                     </div>
                 </div>
 
                 <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
                     <div class="glass p-6 rounded-2xl border-l-4 border-l-amber-500">
-                        <p class="text-neutral-500 text-xs uppercase font-bold">Toplam Ciro</p>
+                        <p class="text-neutral-500 text-[10px] uppercase font-bold tracking-widest">Dönemlik Ciro</p>
                         <p class="text-3xl font-bold">{{ totalRevenue }} ₺</p>
                     </div>
                     <div class="glass p-6 rounded-2xl border-l-4 border-l-emerald-500">
-                        <p class="text-neutral-500 text-xs uppercase font-bold">Kapora</p>
-                        <p class="text-3xl font-bold">{{ totalDeposit }} ₺</p>
+                        <p class="text-neutral-500 text-[10px] uppercase font-bold tracking-widest">Alınan Kapora</p>
+                        <p class="text-3xl font-bold text-emerald-400">{{ totalDeposit }} ₺</p>
                     </div>
                     <div class="glass p-6 rounded-2xl border-l-4 border-l-red-500">
-                        <p class="text-neutral-500 text-xs uppercase font-bold">Kalan</p>
+                        <p class="text-neutral-500 text-[10px] uppercase font-bold tracking-widest">Tahsilat Bekleyen</p>
                         <p class="text-3xl font-bold text-red-400">{{ totalRevenue - totalDeposit }} ₺</p>
                     </div>
                 </div>
 
                 <div class="glass p-6 rounded-2xl">
-                    <input v-model="search" placeholder="İsim ara..." class="w-full mb-6 bg-neutral-900 border border-neutral-800 p-3 rounded-xl outline-none focus:border-amber-500">
-                    <div class="space-y-3">
-                        <div v-for="c in filteredCustomers" :key="c.id" class="flex items-center gap-4 p-4 bg-black/40 border border-neutral-800 rounded-xl hover:border-amber-500/50 transition-all">
-                            <img :src="c.image || 'https://via.placeholder.com/50'" class="w-12 h-12 object-cover rounded-lg">
+                    <div class="flex justify-between items-center mb-6">
+                        <h3 class="font-bold">Müşteri ve Randevu Listesi</h3>
+                        <input v-model="search" placeholder="İsim ile ara..." class="bg-neutral-900 border border-neutral-800 p-2 rounded-lg text-sm outline-none focus:border-amber-500 w-48">
+                    </div>
+                    
+                    <div class="space-y-4">
+                        <div v-for="c in filteredCustomers" :key="c.id" class="flex items-center gap-4 p-4 bg-neutral-900/40 border border-neutral-800 rounded-2xl hover:bg-neutral-900/80 transition-all">
+                            <img :src="c.image || 'https://via.placeholder.com/60/222/444?text=NO+IMG'" class="w-14 h-14 object-cover rounded-xl border border-neutral-700">
                             <div class="flex-1">
-                                <p class="font-bold text-amber-500 uppercase">{{ c.name }}</p>
-                                <p class="text-xs text-neutral-500">{{ c.date }} | {{ c.time }} | {{ c.source }}</p>
+                                <div class="flex items-center gap-2">
+                                    <p class="font-bold text-amber-500 uppercase text-sm">{{ c.name }}</p>
+                                    <span class="text-[9px] bg-neutral-800 px-2 py-0.5 rounded text-neutral-400">{{ c.source }}</span>
+                                </div>
+                                <p class="text-xs text-neutral-400">{{ c.date }} • {{ c.time }} • <b>{{ c.artist }}</b></p>
+                                <p v-if="c.depositDate" class="text-[10px] text-emerald-500/70 italic">Kapora: {{ c.depositDate }}</p>
                             </div>
-                            <div class="flex gap-2">
-                                <button @click="openPrint(c)" class="p-2 text-blue-500 hover:bg-blue-500/10 rounded-lg"><i data-lucide="printer" class="w-4 h-4"></i></button>
-                                <button @click="startEdit(c)" class="p-2 text-amber-500 hover:bg-amber-500/10 rounded-lg"><i data-lucide="edit-2" class="w-4 h-4"></i></button>
+                            <div class="flex items-center gap-3">
+                                <div class="text-right mr-2">
+                                    <p class="font-bold leading-none">{{ c.price }} ₺</p>
+                                    <p class="text-[10px] text-neutral-500 mt-1">Kap: {{ c.deposit }} ₺</p>
+                                </div>
+                                <button @click="openPrint(c)" class="p-2 text-blue-400 hover:bg-blue-400/10 rounded-lg"><i data-lucide="printer" class="w-4 h-4"></i></button>
+                                <button @click="startEdit(c)" class="p-2 text-amber-500 hover:bg-amber-500/10 rounded-lg"><i data-lucide="edit-3" class="w-4 h-4"></i></button>
                                 <button @click="deleteCustomer(c.id)" class="p-2 text-red-500 hover:bg-red-500/10 rounded-lg"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
                             </div>
                         </div>
@@ -81,43 +98,89 @@
                 </div>
             </div>
 
-            <div v-if="view === 'add-customer' || view === 'edit-customer'" class="max-w-xl mx-auto glass p-8 rounded-3xl">
-                <h2 class="text-2xl font-bold mb-6 text-amber-500 italic">{{ view === 'edit-customer' ? 'Düzenle' : 'Yeni Kayıt' }}</h2>
+            <div v-if="view === 'add-customer' || view === 'edit-customer'" class="max-w-2xl mx-auto glass p-8 rounded-3xl">
+                <div class="flex justify-between items-center mb-8">
+                    <h2 class="text-2xl font-bold italic text-amber-500">{{ view === 'edit-customer' ? 'Kaydı Güncelle' : 'Yeni Randevu' }}</h2>
+                    <button @click="view = 'dashboard'" class="text-neutral-500 hover:text-white"><i data-lucide="x"></i></button>
+                </div>
+                
                 <form @submit.prevent="handleSubmit" class="space-y-4">
-                    <input v-model="form.name" placeholder="Ad Soyad" required class="w-full bg-neutral-900 border border-neutral-800 p-3 rounded-xl outline-none">
                     <div class="grid grid-cols-2 gap-4">
-                        <input v-model="form.date" type="date" required class="bg-neutral-900 border border-neutral-800 p-3 rounded-xl outline-none">
-                        <input v-model="form.time" type="time" class="bg-neutral-900 border border-neutral-800 p-3 rounded-xl outline-none">
+                        <div class="space-y-1">
+                            <label class="text-[10px] text-neutral-500 uppercase ml-2">Müşteri Ad Soyad</label>
+                            <input v-model="form.name" required class="w-full bg-neutral-900 border border-neutral-800 p-3 rounded-xl outline-none focus:border-amber-500">
+                        </div>
+                        <div class="space-y-1">
+                            <label class="text-[10px] text-neutral-500 uppercase ml-2">Geliş Kaynağı</label>
+                            <select v-model="form.source" class="w-full bg-neutral-900 border border-neutral-800 p-3 rounded-xl outline-none">
+                                <option value="Sosyal Medya">Sosyal Medya</option>
+                                <option value="Kapı Müşterisi">Kapı Müşterisi</option>
+                            </select>
+                        </div>
                     </div>
-                    <div class="grid grid-cols-2 gap-4">
-                        <input v-model.number="form.price" type="number" placeholder="Toplam Fiyat" class="bg-neutral-900 border border-neutral-800 p-3 rounded-xl outline-none">
-                        <input v-model.number="form.deposit" type="number" placeholder="Kapora" class="bg-neutral-900 border border-neutral-800 p-3 rounded-xl outline-none">
+                    
+                    <div class="grid grid-cols-3 gap-4">
+                        <div class="space-y-1">
+                            <label class="text-[10px] text-neutral-500 uppercase ml-2">Randevu Tarihi</label>
+                            <input v-model="form.date" type="date" required class="w-full bg-neutral-900 border border-neutral-800 p-3 rounded-xl outline-none focus:border-amber-500">
+                        </div>
+                        <div class="space-y-1">
+                            <label class="text-[10px] text-neutral-500 uppercase ml-2">Saat</label>
+                            <input v-model="form.time" type="time" class="w-full bg-neutral-900 border border-neutral-800 p-3 rounded-xl outline-none focus:border-amber-500">
+                        </div>
+                        <div class="space-y-1">
+                            <label class="text-[10px] text-neutral-500 uppercase ml-2">Dövmeci</label>
+                            <input v-model="form.artist" placeholder="Sanatçı Adı" class="w-full bg-neutral-900 border border-neutral-800 p-3 rounded-xl outline-none focus:border-amber-500">
+                        </div>
                     </div>
-                    <select v-model="form.source" class="w-full bg-neutral-900 border border-neutral-800 p-3 rounded-xl outline-none">
-                        <option value="Sosyal Medya">Sosyal Medya</option>
-                        <option value="Kapı Müşterisi">Kapı Müşterisi</option>
-                    </select>
-                    <input type="file" @change="handleFileUpload" class="text-xs text-neutral-500">
-                    <button type="submit" :disabled="saving" class="w-full bg-amber-600 p-4 rounded-xl font-bold hover:bg-amber-700 transition-all">
-                        {{ saving ? 'Kaydediliyor...' : 'Sisteme Gönder' }}
+
+                    <div class="grid grid-cols-3 gap-4">
+                        <div class="space-y-1">
+                            <label class="text-[10px] text-neutral-500 uppercase ml-2">Toplam Fiyat</label>
+                            <input v-model.number="form.price" type="number" class="w-full bg-neutral-900 border border-neutral-800 p-3 rounded-xl outline-none focus:border-amber-500">
+                        </div>
+                        <div class="space-y-1">
+                            <label class="text-[10px] text-neutral-500 uppercase ml-2">Alınan Kapora</label>
+                            <input v-model.number="form.deposit" type="number" class="w-full bg-neutral-900 border border-neutral-800 p-3 rounded-xl outline-none focus:border-amber-500">
+                        </div>
+                        <div class="space-y-1">
+                            <label class="text-[10px] text-neutral-500 uppercase ml-2">Kapora Tarihi</label>
+                            <input v-model="form.depositDate" type="date" class="w-full bg-neutral-900 border border-neutral-800 p-3 rounded-xl outline-none focus:border-amber-500">
+                        </div>
+                    </div>
+
+                    <div class="p-4 border-2 border-dashed border-neutral-800 rounded-2xl flex items-center gap-4">
+                        <input type="file" @change="handleFileUpload" class="text-xs text-neutral-500">
+                        <img v-if="form.image" :src="form.image" class="w-16 h-16 object-cover rounded-lg border border-amber-500">
+                    </div>
+
+                    <button type="submit" :disabled="saving" class="w-full bg-amber-600 p-4 rounded-xl font-bold uppercase tracking-widest hover:bg-amber-700 transition-all flex justify-center items-center gap-2">
+                        <span v-if="saving" class="animate-spin"><i data-lucide="loader-2"></i></span>
+                        {{ saving ? 'İŞLENİYOR...' : (view === 'edit-customer' ? 'GÜNCELLEMEYİ KAYDET' : 'RANDEVUYU ONAYLA') }}
                     </button>
                 </form>
             </div>
         </main>
 
         <div id="print-area" class="hidden">
-            <h1>TOLGATTOO STUDIO</h1>
-            <p>Müşteri: {{ printData.name }}</p>
-            <p>Tarih: {{ printData.date }} - {{ printData.time }}</p>
-            <p>Toplam: {{ printData.price }} ₺ | Kapora: {{ printData.deposit }} ₺</p>
-            <p>Kalan: {{ printData.price - printData.deposit }} ₺</p>
+            <h1 style="text-align:center; font-style:italic;">TOLGATTOO STUDIO</h1>
+            <hr>
+            <p><b>Müşteri:</b> {{ printData.name }}</p>
+            <p><b>Tarih:</b> {{ printData.date }} | {{ printData.time }}</p>
+            <p><b>Sanatçı:</b> {{ printData.artist }}</p>
+            <div style="margin-top:20px; border:1px solid #000; padding:10px;">
+                <p>Toplam Ücret: {{ printData.price }} ₺</p>
+                <p>Ödenen Kapora: {{ printData.deposit }} ₺</p>
+                <h3>KALAN BORÇ: {{ printData.price - printData.deposit }} ₺</h3>
+            </div>
         </div>
     </div>
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-        import { getFirestore, collection, addDoc, getDocs, deleteDoc, doc, updateDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+        import { getFirestore, collection, addDoc, deleteDoc, doc, updateDoc, onSnapshot, query, orderBy } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
+        // !!! BURAYI KENDİ FIREBASE BİLGİLERİNLE DOLDUR !!!
         const firebaseConfig = {
             apiKey: "AIzaSyAnzDQHJ9BZ-0NfZRqjggTsJZtn-fgFHY4",
             authDomain: "tolgatto-panel.firebaseapp.com",
@@ -137,53 +200,69 @@
                 return {
                     view: 'dashboard', loading: true, saving: false, search: '', filterStart: '', filterEnd: '',
                     customers: [], printData: {},
-                    form: { name: '', date: '', time: '', artist: '', price: 0, deposit: 0, source: 'Sosyal Medya', image: '' }
+                    form: { id: null, name: '', date: '', time: '', artist: '', price: 0, deposit: 0, depositDate: '', source: 'Sosyal Medya', image: '' }
                 }
             },
             computed: {
                 filteredCustomers() {
-                    let res = this.customers.filter(c => c.name.toLowerCase().includes(this.search.toLowerCase()));
+                    let res = this.customers.filter(c => c.name?.toLowerCase().includes(this.search.toLowerCase()));
                     if (this.filterStart) res = res.filter(c => c.date >= this.filterStart);
                     if (this.filterEnd) res = res.filter(c => c.date <= this.filterEnd);
-                    return res.sort((a,b) => b.createdAt - a.createdAt);
+                    return res;
                 },
-                totalRevenue() { return this.filteredCustomers.reduce((s,c) => s + (c.price || 0), 0); },
-                totalDeposit() { return this.filteredCustomers.reduce((s,c) => s + (c.deposit || 0), 0); }
+                totalRevenue() { return this.filteredCustomers.reduce((s,c) => s + (Number(c.price) || 0), 0); },
+                totalDeposit() { return this.filteredCustomers.reduce((s,c) => s + (Number(c.deposit) || 0), 0); }
             },
             methods: {
                 async handleSubmit() {
                     this.saving = true;
                     try {
+                        const { id, ...data } = this.form;
                         if (this.view === 'edit-customer') {
-                            const { id, ...data } = this.form;
                             await updateDoc(doc(db, "customers", id), data);
                         } else {
-                            await addDoc(colRef, { ...this.form, createdAt: Date.now() });
+                            await addDoc(colRef, { ...data, createdAt: Date.now() });
                         }
                         this.view = 'dashboard';
                         this.resetForm();
                     } catch (e) { alert("Hata: " + e.message); }
                     this.saving = false;
+                    setTimeout(() => lucide.createIcons(), 200);
                 },
                 async deleteCustomer(id) {
-                    if (confirm("Silinsin mi?")) await deleteDoc(doc(db, "customers", id));
+                    if (confirm("Bu kayıt silinsin mi?")) {
+                        await deleteDoc(doc(db, "customers", id));
+                    }
                 },
-                startEdit(c) { this.form = { ...c }; this.view = 'edit-customer'; },
+                startEdit(c) {
+                    this.form = { ...c };
+                    this.view = 'edit-customer';
+                    setTimeout(() => lucide.createIcons(), 50);
+                },
+                openAddView() {
+                    this.resetForm();
+                    this.view = 'add-customer';
+                    setTimeout(() => lucide.createIcons(), 50);
+                },
                 handleFileUpload(e) {
                     const reader = new FileReader();
                     reader.onload = (ev) => this.form.image = ev.target.result;
                     reader.readAsDataURL(e.target.files[0]);
                 },
-                openPrint(c) { this.printData = c; setTimeout(() => window.print(), 200); },
-                resetForm() { this.form = { name: '', date: '', time: '', artist: '', price: 0, deposit: 0, source: 'Sosyal Medya', image: '' }; }
+                openPrint(c) { this.printData = c; setTimeout(() => window.print(), 300); },
+                resetForm() {
+                    this.form = { id: null, name: '', date: '', time: '', artist: '', price: 0, deposit: 0, depositDate: '', source: 'Sosyal Medya', image: '' };
+                }
             },
             mounted() {
-                onSnapshot(colRef, (snap) => {
+                const q = query(colRef, orderBy("date", "desc"));
+                onSnapshot(q, (snap) => {
                     this.customers = snap.docs.map(d => ({ id: d.id, ...d.data() }));
                     this.loading = false;
-                    setTimeout(() => lucide.createIcons(), 100);
+                    setTimeout(() => lucide.createIcons(), 200);
                 });
-            }
+            },
+            updated() { lucide.createIcons(); }
         }).mount('#app');
     </script>
 </body>
