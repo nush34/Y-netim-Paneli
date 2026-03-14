@@ -3,190 +3,173 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>tolgattoo | Pro Studio</title>
+    <title>tolgattoo | Studio Manager v3</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;900&display=swap');
-        body { font-family: 'Inter', sans-serif; background-color: #050505; color: white; }
+        body { font-family: 'Inter', sans-serif; background-color: #050505; color: white; overflow-x: hidden; }
         .glass { background: rgba(255, 255, 255, 0.02); backdrop-filter: blur(15px); border: 1px solid rgba(255,255,255,0.08); }
-        input, select, option { color-scheme: dark; }
-        .login-bg { background: radial-gradient(circle at center, #1a1a1a 0%, #050505 100%); }
-        @media print { .no-print { display: none !important; } #print-area { display: block !important; color: black !important; } }
+        input, select, textarea { color-scheme: dark; }
+        .tab-active { border-bottom: 2px solid #f59e0b; color: #f59e0b; }
     </style>
 </head>
 <body>
     <div id="app">
-        
-        <div v-if="!isLoggedIn" class="fixed inset-0 z-[9999] login-bg flex items-center justify-center p-6 text-center">
-            <div class="max-w-md w-full glass p-10 rounded-[3rem] shadow-2xl border-amber-500/10">
-                <i data-lucide="lock" class="text-amber-500 w-12 h-12 mx-auto mb-6"></i>
-                <h1 class="text-3xl font-black italic uppercase tracking-widest mb-8">tolgattoo</h1>
-                <form @submit.prevent="checkPassword" class="space-y-4">
-                    <input v-model="passInput" type="password" placeholder="Şifre" class="w-full bg-neutral-900 border border-neutral-800 p-5 rounded-2xl outline-none focus:border-amber-500 text-center text-2xl tracking-widest">
-                    <button type="submit" class="w-full bg-amber-600 hover:bg-amber-500 p-5 rounded-2xl font-black uppercase tracking-widest transition-all">Giriş Yap</button>
-                    <p v-if="loginError" class="text-red-500 text-xs font-bold animate-pulse">Hatalı Şifre!</p>
-                </form>
+        <div v-if="!isLoggedIn" class="fixed inset-0 z-[9999] bg-[#050505] flex items-center justify-center p-6">
+            <div class="max-w-md w-full glass p-10 rounded-[3rem] text-center border-amber-500/10">
+                <h1 class="text-3xl font-black italic uppercase tracking-widest text-amber-500 mb-8">tolgattoo</h1>
+                <input v-model="passInput" type="password" placeholder="Şifre" @keyup.enter="checkPassword" class="w-full bg-neutral-900 border border-neutral-800 p-4 rounded-2xl outline-none focus:border-amber-500 text-center mb-4">
+                <button @click="checkPassword" class="w-full bg-amber-600 p-4 rounded-2xl font-black uppercase tracking-widest">Giriş</button>
             </div>
         </div>
 
         <template v-else>
             <aside class="w-64 bg-black border-r border-neutral-900 p-6 flex flex-col fixed h-full no-print">
-                <div class="mb-10 text-center flex flex-col items-center">
-                    <div class="w-28 h-28 mb-4 rounded-3xl border border-amber-500/20 p-2 bg-neutral-900/30 flex items-center justify-center shadow-2xl">
+                <div class="mb-10 text-center">
+                    <div class="w-24 h-24 mb-4 mx-auto rounded-3xl border border-amber-500/20 p-2 bg-neutral-900/30 flex items-center justify-center">
                         <img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAA0oAAANKCAYAAAC02r7tAAAACXBIWXMAAAsTAAALEwEAmpwYAAAJa2lUWHRYTUw6Y29tLmFkb2JlLnhtcAAAAAAAPD94cGFja2V0IGJlZ2luPSLvu78iIGlkPSJXNU0wTXBDZWhpSHpyZVN6TlRjemtjOWQiPz4gPHg6eG1wbWV0YSB4bWxuczp4PSJhZG9iZTpuczptZXRhLyIgeDp4bXB0az0iQWRvYmUgWE1QIENvcmUgMTAuMC1jMDAwIDI1LkcuZWY3MmU0ZSwgMjAyNS8wNi8yNy0xODo1NDowNSAgICAgICAgIj4gPHJkZjpSREYgeG1sbnM6cmRmPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5LzAyLzIyLXJkZi1zeW50YXgtbnMjIj4gPHJkZjpEZXNjcmlwdGlvbiByZGY6YWJvdXQ9IiIgeG1sbnM6eG1wTU09Imh0dHA6Ly9ucy5hZG9iZS5jb20veGFwLzEuMC9tbS8iIHhtbG5zOnN0RXZ0PSJodHRwOi8vbnMuYWRvYmUuY29tL3hhcC8xLjAvc1R5cGUvUmVzb3VyY2VFdmVudCMiIHhtbG5zOnN0UmVmPSJodHRwOi8vbnMuYWRvYmUuY29tL3hhcC8xLjAvc1R5cGUvUmVzb3VyY2VSZWYjIiB4bWxuczpkYz0iaHR0cDovL3B1cmwub3JnL2RjL2VsZW1lbnRzLzEuMS8iIHhtbG5zOnBob3Rvc2hvcD0iaHR0cDovL25zLmFkb2JlLmNvbS9waG90b3Nob3AvMS4wLyIgeG1sbnM6dGlmZj0iaHR0cDovL25zLmFkb2JlLmNvbS90aWZmLzEuMC8iIHhtbG5zOmV4aWY9Imh0dHA6Ly9ucy5hZG9iZS5jb20vZXhpZi8xLjAvIiB4bWxuczp4bXA9Imh0dHA6Ly9ucy5hZG9iZS5jb20veGFwLzEuMC8iIHhtcE1NOkRvY3VtZW50SUQ9ImFkb2JlOmRvY2lkOnBob3Rvc2hvcDo0MmZlYmZiNy0xZjRlLTY4NDctYjhiZC05MDhiMzU3OThkYzEiIHhtcE1NOkluc3RhbmNlSUQ9InhtcC5paWQ6NWYyNTgwOTMtNjY2MS1kNzQ2LThkMzctY2MwZDBjN2U4OTFmIiB4bXBNTTpPcmlnaW5hbERvY3VtZW50SUQ9IkMzRjY3QUQ5MzZERjBCOUIxMzg1QzdDN0NDNjU3MkU3IiBkYzpmb3JtYXQ9ImltYWdlL3BuZyIgcGhvdG9zaG9wOkNvbG9yTW9kZT0iMyIgdGlmZjpJbWFnZVdpZHRoPSI4NDIiIHRpZmY6SW1hZ2VMZW5ndGg9Ijg0MiIgdGlmZjpQaG90b21ldHJpY0ludGVycHJldGF0aW9uPSIyIiB0aWZmOlNhbXBsZXNQZXJQaXhlbD0iMyIgdGlmZjpYUmVzb2x1dGlvbj0iNzIvMSIgdGlmZjpZUmVzb2x1dGlvbj0iNzIvMSIgdGlmZjpSZXNvbHV0aW9uVW5pdD0iMiIgZXhpZjpFeGlmVmVyc2lvbj0iMDIzMSIgZXhpZjpDb2xvclNwYWNlPSI2NTUzNSIgZXhpZjpQaXhlbFhEaW1lbnNpb249Ijg0MiIgZXhpZjpQaXhlbFlEaW1lbnNpb249Ijg0MiIgeG1wOkNyZWF0ZURhdGU9IjIwMjYtMDItMTFUMjM6NTc6NDMrMDM6MDAiIHhtcDpNb2RpZnlEYXRlPSIyMDI2LTAyLTEyVDAwOjI1OjIxKzAzOjAwIiB4bXA6TWV0YWRhdGFEYXRlPSIyMDI2LTAyLTEyVDAwOjI1OjIxKzAzOjAwIj4gPHhtcE1NOkhpc3Rvcnk+IDxyZGY6U2VxPiA8cmRmOmxpIHN0RXZ0OmFjdGlvbj0ic2F2ZWQiIHN0RXZ0Omluc3RhbmNlSUQ9InhtcC5paWQ6NzRmYjMxMjctOTA5YS05ZDQxLWEyZjUtNmVjNzM2OGM2MmFmIiBzdEV2dDp3aGVuPSIyMDI2LTAyLTEyVDAwOjI1OjIxKzAzOjAwIiBzdEV2dDpzb2Z0d2FyZUFnZW50PSJBZG9iZSBQaG90b3Nob3AgMjcuNCAoMjAyNjAyMDUubS4zNDA0IGFmYjI2ZmEpICAoV2luZG93cykiIHN0RXZ0OmNoYW5nZWQ9Ii8iLz4gPHJkZjpsaSBzdEV2dDphY3Rpb249ImNvbnZlcnRlZCIgc3RFdnQ6cGFyYW1ldGVycz0iZnJvbSBpbWFnZS9qcGVnIHRvIGltYWdlL3BuZyIvPiA8cmRmOmxpIHN0RXZ0OmFjdGlvbj0iZGVyaXZlZCIgc3RFdnQ6cGFyYW1ldGVycz0iY29udmVydGVk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" alt="logo" class="w-full h-full object-contain">
                     </div>
                     <h1 class="text-amber-500 font-black text-xl italic uppercase tracking-widest">tolgattoo</h1>
                 </div>
-                
                 <nav class="space-y-3 flex-1">
-                    <button @click="view = 'dashboard'" :class="view === 'dashboard' ? 'bg-amber-600 text-white' : 'text-neutral-500 hover:text-amber-500'" class="w-full flex items-center gap-3 px-5 py-4 rounded-2xl transition-all text-sm font-bold uppercase tracking-wider">
-                        <i data-lucide="layout-dashboard"></i> Akış
+                    <button @click="view = 'dashboard'" :class="view === 'dashboard' ? 'bg-amber-600 text-white' : 'text-neutral-500'" class="w-full flex items-center gap-3 px-5 py-4 rounded-2xl font-bold uppercase text-xs tracking-wider transition-all">
+                        <i data-lucide="layout-dashboard"></i> Dashboard
                     </button>
-                    <button @click="openAddView" :class="view === 'add-customer' ? 'bg-amber-600 text-white' : 'text-neutral-500 hover:text-amber-500'" class="w-full flex items-center gap-3 px-5 py-4 rounded-2xl transition-all text-sm font-bold uppercase tracking-wider">
+                    <button @click="openAddView" :class="view === 'add' ? 'bg-amber-600 text-white' : 'text-neutral-500'" class="w-full flex items-center gap-3 px-5 py-4 rounded-2xl font-bold uppercase text-xs tracking-wider transition-all">
                         <i data-lucide="plus-circle"></i> Yeni Kayıt
                     </button>
                 </nav>
-                <button @click="logout" class="text-[10px] text-neutral-700 hover:text-red-500 transition-colors uppercase font-black text-center w-full tracking-[0.3em]">Güvenli Çıkış</button>
+                <button @click="logout" class="text-[10px] text-neutral-800 hover:text-red-500 font-black uppercase tracking-widest">Güvenli Çıkış</button>
             </aside>
 
-            <main class="ml-64 p-8 no-print">
-                <div v-if="loading" class="flex flex-col items-center justify-center h-96 text-amber-500 italic"><i data-lucide="refresh-cw" class="animate-spin w-10 h-10 mb-4"></i></div>
-
-                <div v-else-if="view === 'dashboard'">
-                    <div class="flex justify-between items-end mb-10">
-                        <h2 class="text-4xl font-black italic uppercase">Stüdyo Durumu</h2>
-                        <div class="glass p-3 rounded-2xl flex items-center gap-3">
-                            <input v-model="filterStart" type="date" class="bg-transparent text-xs text-amber-500 outline-none">
-                            <span class="text-neutral-700">/</span>
-                            <input v-model="filterEnd" type="date" class="bg-transparent text-xs text-amber-500 outline-none">
+            <main class="ml-64 p-8">
+                <div v-if="view === 'dashboard'">
+                    <div class="flex justify-between items-center mb-8">
+                        <h2 class="text-4xl font-black italic uppercase">Stüdyo Yönetimi</h2>
+                        <div class="flex gap-6">
+                            <button @click="filterStatus = 'completed'" :class="filterStatus === 'completed' ? 'tab-active' : 'text-neutral-500'" class="pb-1 font-black uppercase text-xs tracking-widest transition-all">Randevular & Kasa</button>
+                            <button @click="filterStatus = 'potential'" :class="filterStatus === 'potential' ? 'tab-active' : 'text-neutral-500'" class="pb-1 font-black uppercase text-xs tracking-widest transition-all">Potansiyel Müşteriler</button>
                         </div>
                     </div>
 
-                    <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-12">
-                        <div class="glass p-6 rounded-[2rem] border-l-4 border-l-amber-600">
-                            <p class="text-[9px] text-neutral-500 font-bold uppercase tracking-widest mb-1">Toplam Ciro</p>
+                    <div v-if="filterStatus === 'completed'" class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
+                        <div class="glass p-6 rounded-3xl border-l-4 border-amber-600">
+                            <p class="text-[10px] text-neutral-500 font-bold uppercase mb-1">Toplam Ciro</p>
                             <p class="text-3xl font-black">{{ totalRevenue }} ₺</p>
                         </div>
-                        <div class="glass p-6 rounded-[2rem] border-l-4 border-l-emerald-600">
-                            <p class="text-[9px] text-neutral-500 font-bold uppercase tracking-widest mb-1">Nakit Tahsilat</p>
-                            <p class="text-3xl font-black text-emerald-500">{{ totalCash }} ₺</p>
+                        <div class="glass p-6 rounded-3xl border-l-4 border-emerald-600">
+                            <p class="text-[10px] text-neutral-500 font-bold uppercase mb-1">Tahsil Edilen (Nakit/Kart)</p>
+                            <p class="text-3xl font-black text-emerald-500">{{ totalPaid }} ₺</p>
                         </div>
-                        <div class="glass p-6 rounded-[2rem] border-l-4 border-l-blue-600">
-                            <p class="text-[9px] text-neutral-500 font-bold uppercase tracking-widest mb-1">Kart Tahsilat</p>
-                            <p class="text-3xl font-black text-blue-500">{{ totalCard }} ₺</p>
-                        </div>
-                        <div class="glass p-6 rounded-[2rem] border-l-4 border-l-red-600">
-                            <p class="text-[9px] text-neutral-500 font-bold uppercase tracking-widest mb-1">Toplam Alacak</p>
-                            <p class="text-3xl font-black text-red-500">{{ totalRevenue - (totalCash + totalCard) }} ₺</p>
+                        <div v-if="filterStatus === 'completed'" class="glass p-6 rounded-3xl border-l-4 border-red-600">
+                            <p class="text-[10px] text-neutral-500 font-bold uppercase mb-1">Kalan Alacak</p>
+                            <p class="text-3xl font-black text-red-600">{{ totalRevenue - totalPaid }} ₺</p>
                         </div>
                     </div>
 
                     <div class="glass p-8 rounded-[3rem]">
-                        <input v-model="search" placeholder="Müşteri ismi ara..." class="w-full bg-neutral-900 border border-neutral-800 p-5 rounded-2xl mb-8 outline-none focus:border-amber-500 transition-all">
+                        <input v-model="search" :placeholder="filterStatus === 'completed' ? 'Müşteri ara...' : 'Potansiyel müşteri veya gerekçe ara...'" class="w-full bg-neutral-900 border border-neutral-800 p-5 rounded-2xl mb-8 outline-none focus:border-amber-500 transition-all">
                         
                         <div class="space-y-4">
-                            <div v-for="c in filteredCustomers" :key="c.id" class="flex items-center gap-6 p-5 bg-white/[0.01] border border-white/[0.04] rounded-[2rem] hover:bg-white/[0.03] transition-all">
-                                <div class="w-16 h-16 shrink-0 cursor-zoom-in" @click="zoomedImg = c.image">
-                                    <img :src="c.image || 'https://via.placeholder.com/150/111/333?text=IMG'" class="w-full h-full object-cover rounded-xl border border-white/10">
-                                </div>
+                            <div v-for="c in filteredList" :key="c.id" class="flex items-center gap-6 p-5 bg-white/[0.01] border border-white/[0.04] rounded-[2rem] hover:bg-white/[0.03] transition-all">
+                                <div class="w-16 h-16 shrink-0"><img :src="c.image || 'https://via.placeholder.com/150/111/333'" class="w-full h-full object-cover rounded-xl border border-white/10"></div>
                                 <div class="flex-1">
-                                    <div class="flex items-center gap-2 mb-1">
+                                    <div class="flex items-center gap-3">
                                         <h4 class="font-bold text-xl">{{ c.name }}</h4>
-                                        <span class="text-[9px] px-2 py-0.5 rounded-full bg-neutral-800 text-neutral-400 font-bold uppercase tracking-tighter">
-                                            {{ c.source === 'Kapı' ? '🚪 Kapı' : '📱 Sosyal Medya' }}
-                                        </span>
+                                        <span class="text-[9px] px-2 py-0.5 rounded-full bg-amber-500/10 text-amber-500 font-bold uppercase tracking-tighter">{{ c.style }}</span>
                                     </div>
-                                    <div class="flex gap-4 text-[11px] text-neutral-500">
+                                    <p v-if="c.status === 'potential'" class="text-sm text-neutral-400 mt-1 italic">"{{ c.note }}"</p>
+                                    <div class="flex gap-4 text-[10px] text-neutral-500 mt-2 font-bold uppercase tracking-widest">
                                         <span>📅 {{ c.date }}</span>
-                                        <span>🖋️ {{ c.artist }}</span>
-                                    </div>
-                                    <div class="flex gap-1 mt-3">
-                                        <span v-for="p in c.payments" class="text-[9px] bg-emerald-500/10 text-emerald-500 px-2 py-0.5 rounded-md border border-emerald-500/20">
-                                            {{ p.amount }}₺ ({{ p.method === 'Kart' ? '💳' : '💵' }})
-                                        </span>
+                                        <span v-if="c.status === 'potential'" class="text-red-400">🚩 Gerekçe: {{ c.reason }}</span>
                                     </div>
                                 </div>
                                 <div class="text-right">
-                                    <p class="text-2xl font-black">{{ c.price }} ₺</p>
-                                    <p class="text-[10px] font-bold" :class="calculateTotalPaid(c) >= c.price ? 'text-emerald-500' : 'text-red-500'">
-                                        {{ calculateTotalPaid(c) >= c.price ? 'ÖDENDİ' : (c.price - calculateTotalPaid(c)) + ' ₺ KALDI' }}
-                                    </p>
-                                    <div class="flex gap-1 mt-3 justify-end">
-                                        <button @click="sendCareGuide(c)" class="p-2 text-amber-500 hover:bg-white/5 rounded-lg"><i data-lucide="sparkles" class="w-4 h-4"></i></button>
-                                        <button @click="sendWhatsApp(c)" class="p-2 text-emerald-500 hover:bg-white/5 rounded-lg"><i data-lucide="message-circle" class="w-4 h-4"></i></button>
-                                        <button @click="startEdit(c)" class="p-2 text-neutral-400 hover:bg-white/5 rounded-lg"><i data-lucide="edit-3" class="w-4 h-4"></i></button>
-                                        <button @click="deleteCustomer(c.id)" class="p-2 text-red-500 hover:bg-white/5 rounded-lg"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
+                                    <p class="text-2xl font-black text-white">{{ c.price }} ₺</p>
+                                    <div class="flex gap-2 mt-3 justify-end">
+                                        <button @click="sendWhatsApp(c)" class="p-2 text-emerald-500 hover:bg-emerald-500/10 rounded-lg"><i data-lucide="message-circle" class="w-5 h-5"></i></button>
+                                        <button @click="startEdit(c)" class="p-2 text-neutral-400 hover:bg-white/10 rounded-lg"><i data-lucide="edit-3" class="w-5 h-5"></i></button>
+                                        <button @click="deleteCustomer(c.id)" class="p-2 text-red-500 hover:bg-red-500/10 rounded-lg"><i data-lucide="trash-2" class="w-5 h-5"></i></button>
                                     </div>
                                 </div>
                             </div>
+                            <div v-if="filteredList.length === 0" class="text-center py-20 text-neutral-700 italic">Kayıt bulunamadı...</div>
                         </div>
                     </div>
                 </div>
 
-                <div v-else-if="view === 'add-customer' || view === 'edit-customer'" class="max-w-4xl mx-auto glass p-10 rounded-[3rem]">
+                <div v-else-if="view === 'add' || view === 'edit'" class="max-w-4xl mx-auto glass p-10 rounded-[3.5rem]">
                     <div class="flex justify-between items-center mb-10">
-                        <h2 class="text-3xl font-black italic uppercase">{{ view === 'edit-customer' ? 'Düzenle' : 'Yeni Kayıt' }}</h2>
+                        <h2 class="text-3xl font-black italic uppercase">{{ view === 'edit' ? 'Kaydı Güncelle' : 'Yeni Kayıt Oluştur' }}</h2>
                         <button @click="view = 'dashboard'" class="text-neutral-500 hover:text-white"><i data-lucide="x"></i></button>
                     </div>
 
-                    <form @submit.prevent="handleSubmit" class="space-y-8">
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
-                            <div class="space-y-4">
-                                <input v-model="form.name" placeholder="Müşteri Ad Soyad" required class="w-full bg-neutral-900 border border-neutral-800 p-4 rounded-2xl outline-none focus:border-amber-500">
-                                <input v-model="form.phone" placeholder="Telefon" class="w-full bg-neutral-900 border border-neutral-800 p-4 rounded-2xl outline-none focus:border-amber-500">
-                                <div class="grid grid-cols-2 gap-4">
-                                    <input v-model="form.date" type="date" required class="bg-neutral-900 border border-neutral-800 p-4 rounded-2xl outline-none text-sm">
-                                    <input v-model="form.time" type="time" class="bg-neutral-900 border border-neutral-800 p-4 rounded-2xl outline-none text-sm">
-                                </div>
-                                <select v-model="form.source" class="w-full bg-neutral-900 border border-neutral-800 p-4 rounded-2xl outline-none">
-                                    <option value="Sosyal Medya">Sosyal Medya</option>
-                                    <option value="Kapı">Kapı Müşterisi</option>
+                    <form @submit.prevent="handleSubmit" class="grid grid-cols-1 md:grid-cols-2 gap-10">
+                        <div class="space-y-5">
+                            <div>
+                                <label class="text-[10px] font-black uppercase text-neutral-600 ml-2 mb-2 block">İşlem Durumu</label>
+                                <select v-model="form.status" class="w-full bg-neutral-900 border border-neutral-800 p-4 rounded-2xl outline-none focus:border-amber-500">
+                                    <option value="completed">✅ Randevulu / Tamamlandı</option>
+                                    <option value="potential">⏳ Potansiyel Müşteri (Sadece Fiyat)</option>
                                 </select>
-                                <div class="relative aspect-square rounded-[2rem] bg-neutral-900 border-2 border-dashed border-neutral-800 flex items-center justify-center overflow-hidden">
-                                    <img v-if="form.image" :src="form.image" class="w-full h-full object-cover">
-                                    <span v-else class="text-xs text-neutral-600 uppercase font-bold">Resim Yükle</span>
-                                    <input type="file" @change="handleFileUpload" class="absolute inset-0 opacity-0 cursor-pointer">
-                                </div>
+                            </div>
+                            <input v-model="form.name" placeholder="Müşteri Ad Soyad" required class="w-full bg-neutral-900 border border-neutral-800 p-4 rounded-2xl outline-none focus:border-amber-500">
+                            <input v-model="form.phone" placeholder="Telefon (WhatsApp)" class="w-full bg-neutral-900 border border-neutral-800 p-4 rounded-2xl outline-none focus:border-amber-500">
+                            
+                            <div v-if="form.status === 'potential'" class="space-y-4 animate-in slide-in-from-top-2">
+                                <label class="text-[10px] font-black uppercase text-red-500 ml-2 block">Neden Yaptırmadı?</label>
+                                <select v-model="form.reason" class="w-full bg-neutral-900 border border-red-900/30 p-4 rounded-2xl outline-none">
+                                    <option value="Maaşı alınca gelecek">Maaşı alınca gelecek</option>
+                                    <option value="Ailesine danışacak">Ailesine danışacak</option>
+                                    <option value="Düşünmek istiyor">Düşünmek istiyor</option>
+                                    <option value="Sadece fiyat almak istedi">Sadece fiyat almak istedi</option>
+                                    <option value="Fiyat yüksek geldi">Fiyat yüksek geldi</option>
+                                </select>
+                                <textarea v-model="form.note" placeholder="Ek açıklama veya hatırlatıcı not..." class="w-full bg-neutral-900 border border-neutral-800 p-4 rounded-2xl outline-none h-24 text-sm"></textarea>
                             </div>
 
-                            <div class="space-y-6">
-                                <input v-model="form.artist" placeholder="Sanatçı (Artist)" required class="w-full bg-neutral-900 border border-neutral-800 p-4 rounded-2xl outline-none">
-                                <div class="p-5 bg-amber-600/5 border border-amber-600/20 rounded-2xl">
-                                    <p class="text-[10px] text-amber-500 font-bold uppercase mb-2">Toplam Bedel</p>
-                                    <input v-model.number="form.price" type="number" class="w-full bg-transparent text-4xl font-black outline-none">
-                                </div>
-
-                                <div class="space-y-4">
-                                    <div class="flex justify-between items-center px-2">
-                                        <h5 class="text-xs font-bold text-neutral-500 uppercase tracking-widest">Ödemeler</h5>
-                                        <button type="button" @click="addPaymentField" class="text-emerald-500 text-xs">+ Ekle</button>
-                                    </div>
-                                    <div class="space-y-2">
-                                        <div v-for="(pay, idx) in form.payments" :key="idx" class="flex gap-2">
-                                            <input v-model.number="pay.amount" type="number" placeholder="₺" class="w-20 bg-black border border-neutral-800 p-2 rounded-xl text-sm">
-                                            <select v-model="pay.method" class="w-20 bg-black border border-neutral-800 p-2 rounded-xl text-[10px]">
-                                                <option value="Nakit">Nakit</option>
-                                                <option value="Kart">Kart</option>
-                                            </select>
-                                            <input v-model="pay.date" type="date" class="flex-1 bg-black border border-neutral-800 p-2 rounded-xl text-[10px]">
-                                            <button @click="form.payments.splice(idx,1)" class="text-red-900 p-1"><i data-lucide="minus-circle" class="w-4 h-4"></i></button>
-                                        </div>
-                                    </div>
-                                </div>
+                            <div v-if="form.status === 'completed'" class="grid grid-cols-2 gap-4">
+                                <input v-model="form.date" type="date" class="bg-neutral-900 border border-neutral-800 p-4 rounded-2xl outline-none text-sm">
+                                <input v-model="form.time" type="time" class="bg-neutral-900 border border-neutral-800 p-4 rounded-2xl outline-none text-sm">
                             </div>
                         </div>
-                        <button type="submit" :disabled="saving" class="w-full bg-amber-600 p-6 rounded-3xl font-black text-xl tracking-[0.4em] transition-all shadow-2xl shadow-amber-900/40">
-                            {{ saving ? 'İŞLENİYOR...' : 'KAYDET' }}
-                        </button>
+
+                        <div class="space-y-5">
+                            <div>
+                                <label class="text-[10px] font-black uppercase text-neutral-600 ml-2 mb-2 block">Dövme Tarzı</label>
+                                <select v-model="form.style" class="w-full bg-neutral-900 border border-neutral-800 p-4 rounded-2xl outline-none">
+                                    <option value="Çizgisel">Çizgisel (Linework)</option>
+                                    <option value="Realistik">Realistik</option>
+                                    <option value="Cover Up">Cover Up (Kapatma)</option>
+                                    <option value="Minimal">Minimal</option>
+                                    <option value="Renkli">Renkli</option>
+                                </select>
+                            </div>
+                            <div class="p-6 bg-amber-600/5 border border-amber-600/20 rounded-3xl">
+                                <p class="text-[10px] text-amber-500 font-bold uppercase mb-2">Verilen Fiyat / Toplam Bedel</p>
+                                <input v-model.number="form.price" type="number" class="w-full bg-transparent text-4xl font-black outline-none" placeholder="0 ₺">
+                            </div>
+                            <div v-if="form.status === 'completed'" class="space-y-3">
+                                <div class="flex justify-between items-center px-2">
+                                    <span class="text-[10px] font-bold text-neutral-500 uppercase">Ödemeler</span>
+                                    <button type="button" @click="addPayment" class="text-emerald-500 text-[10px] uppercase font-bold">+ Ödeme Ekle</button>
+                                </div>
+                                <div v-for="(p, idx) in form.payments" :key="idx" class="flex gap-2">
+                                    <input v-model.number="p.amount" type="number" class="w-20 bg-black border border-neutral-800 p-2 rounded-xl text-sm font-bold" placeholder="₺">
+                                    <select v-model="p.method" class="w-24 bg-black border border-neutral-800 p-2 rounded-xl text-[10px]">
+                                        <option value="Nakit">Nakit</option>
+                                        <option value="Kart">Kart</option>
+                                    </select>
+                                    <button @click="form.payments.splice(idx,1)" class="text-red-900"><i data-lucide="minus-circle" class="w-4 h-4"></i></button>
+                                </div>
+                            </div>
+                            <button type="submit" class="w-full bg-amber-600 p-6 rounded-3xl font-black text-xl tracking-[0.3em] shadow-2xl shadow-amber-900/40 mt-6">KAYDET</button>
+                        </div>
                     </form>
                 </div>
             </main>
-
-            <div v-if="zoomedImg" @click="zoomedImg = null" class="fixed inset-0 z-[10000] login-bg flex items-center justify-center p-6 cursor-zoom-out">
-                <img :src="zoomedImg" class="max-w-full max-h-full rounded-3xl shadow-3xl animate-in zoom-in-95 duration-300">
-            </div>
         </template>
     </div>
 
@@ -194,15 +177,7 @@
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
         import { getFirestore, collection, addDoc, deleteDoc, doc, updateDoc, onSnapshot, query, orderBy } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-        const firebaseConfig = {
-            apiKey: "AIzaSyAnzDQHJ9BZ-0NfZRqjggTsJZtn-fgFHY4",
-            authDomain: "tolgatto-panel.firebaseapp.com",
-            projectId: "tolgatto-panel",
-            storageBucket: "tolgatto-panel.firebasestorage.app",
-            messagingSenderId: "361836880672",
-            appId: "1:361836880672:web:126ea91110d44a8dd66d45"
-        };
-
+        const firebaseConfig = { apiKey: "AIzaSyAnzDQHJ9BZ-0NfZRqjggTsJZtn-fgFHY4", authDomain: "tolgatto-panel.firebaseapp.com", projectId: "tolgatto-panel", storageBucket: "tolgatto-panel.firebasestorage.app", messagingSenderId: "361836880672", appId: "1:361836880672:web:126ea91110d44a8dd66d45" };
         const fb = initializeApp(firebaseConfig);
         const db = getFirestore(fb);
         const colRef = collection(db, "customers");
@@ -211,83 +186,57 @@
         createApp({
             data() {
                 return {
-                    isLoggedIn: false, passInput: '', loginError: false, correctPassword: 'tattoo2024',
-                    view: 'dashboard', loading: true, saving: false, search: '',
-                    filterStart: '', filterEnd: '', zoomedImg: null, customers: [],
-                    form: { id: null, name: '', phone: '', date: '', time: '', artist: '', source: 'Sosyal Medya', price: 0, payments: [], image: '' }
+                    isLoggedIn: false, passInput: '', correctPassword: 'tattoo2024',
+                    view: 'dashboard', filterStatus: 'completed', loading: true, search: '',
+                    customers: [],
+                    form: { id: null, status: 'completed', name: '', phone: '', date: '', time: '', style: 'Çizgisel', price: 0, reason: 'Düşünmek istiyor', note: '', payments: [] }
                 }
             },
             computed: {
-                filteredCustomers() {
-                    let list = this.customers.filter(c => c.name?.toLowerCase().includes(this.search.toLowerCase()));
-                    if (this.filterStart) list = list.filter(c => c.date >= this.filterStart);
-                    if (this.filterEnd) list = list.filter(c => c.date <= this.filterEnd);
-                    return list;
+                filteredList() {
+                    return this.customers.filter(c => 
+                        c.status === this.filterStatus && 
+                        (c.name?.toLowerCase().includes(this.search.toLowerCase()) || c.reason?.toLowerCase().includes(this.search.toLowerCase()))
+                    );
                 },
-                totalRevenue() { return this.filteredCustomers.reduce((s,c) => s + (Number(c.price) || 0), 0); },
-                totalCash() { return this.filteredCustomers.reduce((s,c) => s + this.calcByMethod(c, 'Nakit'), 0); },
-                totalCard() { return this.filteredCustomers.reduce((s,c) => s + this.calcByMethod(c, 'Kart'), 0); }
+                totalRevenue() { return this.customers.filter(c => c.status === 'completed').reduce((s,c) => s + (Number(c.price) || 0), 0); },
+                totalPaid() { 
+                    return this.customers.filter(c => c.status === 'completed').reduce((s,c) => s + (c.payments || []).reduce((ps, p) => ps + (Number(p.amount) || 0), 0), 0);
+                }
             },
             methods: {
-                checkPassword() {
-                    if(this.passInput === this.correctPassword) { this.isLoggedIn = true; localStorage.setItem('tolga_auth', 'active'); }
-                    else { this.loginError = true; }
+                checkPassword() { 
+                    if(this.passInput === this.correctPassword) { this.isLoggedIn = true; localStorage.setItem('tolga_auth', 'active'); setTimeout(() => lucide.createIcons(), 100); }
                 },
                 logout() { this.isLoggedIn = false; localStorage.removeItem('tolga_auth'); },
-                calcByMethod(c, method) {
-                    return (c.payments || []).filter(p => p.method === method).reduce((s, p) => s + (Number(p.amount) || 0), 0);
-                },
-                calculateTotalPaid(c) {
-                    return (c.payments || []).reduce((s, p) => s + (Number(p.amount) || 0), 0);
-                },
-                addPaymentField() {
-                    this.form.payments.push({ amount: 0, date: new Date().toISOString().split('T')[0], method: 'Nakit' });
-                },
-                sendCareGuide(c) {
-                    const msg = `Selam ${c.name} ✨ Dövmen bitti, hayırlı olsun! Bakım rehberine buradan ulaşabilirsin: https://tolgattoo.com/bakim`;
-                    this.openWA(c.phone, msg);
-                },
-                sendWhatsApp(c) {
-                    const msg = `Selam ${c.name}, yarın saat ${c.time} randevunu hatırlatmak istedim. Görüşürüz!`;
-                    this.openWA(c.phone, msg);
-                },
-                openWA(phone, text) {
-                    let p = phone.replace(/\D/g,'');
-                    if(p.startsWith('5')) p = '90' + p;
-                    window.open(`https://wa.me/${p}?text=${encodeURIComponent(text)}`, '_blank');
-                },
+                addPayment() { this.form.payments.push({ amount: 0, method: 'Nakit', date: new Date().toISOString().split('T')[0] }); },
                 async handleSubmit() {
-                    this.saving = true;
                     const { id, ...data } = this.form;
-                    if (id) await updateDoc(doc(db, "customers", id), data);
+                    if(id) await updateDoc(doc(db, "customers", id), data);
                     else await addDoc(colRef, { ...data, createdAt: Date.now() });
                     this.view = 'dashboard';
-                    this.saving = false;
                 },
                 async deleteCustomer(id) { if(confirm("Silinsin mi?")) await deleteDoc(doc(db, "customers", id)); },
-                startEdit(c) { this.form = JSON.parse(JSON.stringify(c)); this.view = 'edit-customer'; },
+                startEdit(c) { this.form = JSON.parse(JSON.stringify(c)); this.view = 'edit'; },
                 openAddView() {
-                    this.form = { id: null, name: '', phone: '', date: '', time: '', artist: '', source: 'Sosyal Medya', price: 0, payments: [{amount:0, date: new Date().toISOString().split('T')[0], method: 'Nakit'}], image: '' };
-                    this.view = 'add-customer';
+                    this.form = { id: null, status: 'completed', name: '', phone: '', date: new Date().toISOString().split('T')[0], time: '', style: 'Çizgisel', price: 0, reason: 'Düşünmek istiyor', note: '', payments: [] };
+                    this.view = 'add';
                 },
-                handleFileUpload(e) {
-                    const file = e.target.files[0];
-                    if (file) {
-                        const reader = new FileReader();
-                        reader.onload = (ev) => this.form.image = ev.target.result;
-                        reader.readAsDataURL(file);
-                    }
+                sendWhatsApp(c) {
+                    let msg = c.status === 'completed' ? `Selam ${c.name}, randevunu hatırlatmak istedim.` : `Selam ${c.name}, sormuş olduğun ${c.style} dövme tasarımı için yardımcı olabilirim. Ne dersin?`;
+                    let p = c.phone.replace(/\D/g,'');
+                    if(p.startsWith('5')) p = '90' + p;
+                    window.open(`https://wa.me/${p}?text=${encodeURIComponent(msg)}`, '_blank');
                 }
             },
             mounted() {
                 if(localStorage.getItem('tolga_auth') === 'active') this.isLoggedIn = true;
-                onSnapshot(query(colRef, orderBy("date", "desc")), (snap) => {
+                onSnapshot(query(colRef, orderBy("createdAt", "desc")), (snap) => {
                     this.customers = snap.docs.map(d => ({ id: d.id, ...d.data() }));
                     this.loading = false;
                     setTimeout(() => lucide.createIcons(), 200);
                 });
-            },
-            updated() { lucide.createIcons(); }
+            }
         }).mount('#app');
     </script>
 </body>
