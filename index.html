@@ -102,7 +102,7 @@
                         <div class="space-y-4">
                             <div v-for="c in filteredCustomers" :key="c.id" class="flex items-center gap-6 p-5 bg-white/[0.01] border border-white/[0.04] rounded-[2rem] hover:bg-white/[0.03] transition-all group">
                                 <div class="relative w-20 h-20 shrink-0 cursor-zoom-in" @click="zoomedImg = c.image">
-                                    <img :src="c.image || 'https://via.placeholder.com/150/111/333?text=NO+IMAGE'" class="w-full h-full object-cover rounded-2xl border border-white/10 shadow-lg">
+                                    <img :src="c.image || 'https://via.placeholder.com/100/111/333?text=IMG'" class="w-full h-full object-cover rounded-2xl border border-white/10 shadow-lg">
                                     <div class="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity bg-black/60 rounded-2xl">
                                         <i data-lucide="maximize" class="w-5 h-5"></i>
                                     </div>
