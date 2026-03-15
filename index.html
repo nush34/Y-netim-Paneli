@@ -186,82 +186,99 @@
     </div>
 
     <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-        import { getFirestore, collection, addDoc, deleteDoc, doc, updateDoc, onSnapshot, query, orderBy } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+    import { getFirestore, collection, addDoc, deleteDoc, doc, updateDoc, onSnapshot, query, orderBy } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-        // CONFIG (Kendi bilgilerini buraya tekrar yapıştır)
-        const firebaseConfig = { apiKey: "AIzaSyAnzDQHJ9BZ-0NfZRqjggTsJZtn-fgFHY4", authDomain: "tolgatto-panel.firebaseapp.com", projectId: "tolgatto-panel", storageBucket: "tolgatto-panel.firebasestorage.app", messagingSenderId: "361836880672", appId: "1:361836880672:web:126ea91110d44a8dd66d45" };
-        const fb = initializeApp(firebaseConfig);
-        const db = getFirestore(fb);
-        const colRef = collection(db, "customers");
+    const firebaseConfig = { 
+        apiKey: "SENİN_API_KEY", 
+        authDomain: "tolgattoo.firebaseapp.com", 
+        projectId: "tolgattoo", 
+        storageBucket: "tolgattoo.appspot.com", 
+        messagingSenderId: "...", 
+        appId: "..." 
+    };
+    
+    const fb = initializeApp(firebaseConfig);
+    const db = getFirestore(fb);
+    const colRef = collection(db, "customers");
 
-        const { createApp } = Vue;
-        createApp({
-            data() {
-                return {
-                    isLoggedIn: false, passInput: '', correctPassword: '312593',
-                    view: 'dashboard', filterStatus: 'completed', loading: true, search: '',
-                    filterStart: '', filterEnd: '', customers: [],
-                    form: { id: null, status: 'completed', name: '', phone: '', date: '', time: '', style: 'Çizgisel', price: 0, reason: 'Düşünmek istiyor', note: '', payments: [] }
-                }
-            },
-            computed: {
-                filteredList() {
-                    let list = this.customers.filter(c => c.status === this.filterStatus);
-                    if (this.filterStart) list = list.filter(c => c.date >= this.filterStart);
-                    if (this.filterEnd) list = list.filter(c => c.date <= this.filterEnd);
-                    if (this.search) {
-                        const s = this.search.toLowerCase();
-                        list = list.filter(c => c.name?.toLowerCase().includes(s) || c.reason?.toLowerCase().includes(s));
-                    }
-                    return list;
-                },
-                totalRevenueInRange() { return this.filteredList.reduce((s,c) => s + (Number(c.price) || 0), 0); },
-                totalPaidInRange() {
-                    return this.filteredList.reduce((s,c) => s + (c.payments || []).reduce((ps, p) => ps + (Number(p.amount) || 0), 0), 0);
-                }
-            },
-            methods: {
-                checkPassword() { 
-                    if(this.passInput === this.correctPassword) { 
-                        this.isLoggedIn = true; 
-                        localStorage.setItem('tolga_auth', 'active'); 
-                        setTimeout(() => lucide.createIcons(), 100); 
-                    } 
-                },
-                logout() { this.isLoggedIn = false; localStorage.removeItem('tolga_auth'); },
-                resetDates() { this.filterStart = ''; this.filterEnd = ''; },
-                calcC(c) { return (c.payments || []).reduce((s, p) => s + (Number(p.amount) || 0), 0); },
-                addPay() { this.form.payments.push({ amount: 0, method: 'Nakit', date: new Date().toISOString().split('T')[0] }); },
-                async handleSubmit() {
-                    const { id, ...data } = this.form;
-                    if(id) await updateDoc(doc(db, "customers", id), data);
-                    else await addDoc(colRef, { ...data, createdAt: Date.now() });
-                    this.view = 'dashboard';
-                },
-                async deleteCustomer(id) { if(confirm("Kaydı silmek istiyor musun?")) await deleteDoc(doc(db, "customers", id)); },
-                startEdit(c) { this.form = JSON.parse(JSON.stringify(c)); this.view = 'edit'; },
-                openAddView() {
-                    this.form = { id: null, status: 'completed', name: '', phone: '', date: new Date().toISOString().split('T')[0], time: '', style: 'Çizgisel', price: 0, reason: 'Düşünmek istiyor', note: '', payments: [] };
-                    this.view = 'add';
-                },
-                sendWhatsApp(c) {
-                    let msg = c.status === 'completed' ? `Selam ${c.name}, randevunu hatırlatmak istedim.` : `Selam ${c.name}, sormuş olduğun ${c.style} dövme tasarımı için yardımcı olabilirim. Ne dersin?`;
-                    let p = c.phone.replace(/\D/g,'');
-                    if(p.startsWith('5')) p = '90' + p;
-                    window.open(`https://wa.me/${p}?text=${encodeURIComponent(msg)}`, '_blank');
-                }
-            },
-            mounted() {
-                if(localStorage.getItem('tolga_auth') === 'active') this.isLoggedIn = true;
-                onSnapshot(query(colRef, orderBy("date", "desc")), (snap) => {
-                    this.customers = snap.docs.map(d => ({ id: d.id, ...d.data() }));
-                    this.loading = false;
-                    setTimeout(() => lucide.createIcons(), 200);
+    const { createApp } = Vue;
+    createApp({
+        data() {
+            return {
+                isLoggedIn: false, passInput: '', correctPassword: 'tattoo2024',
+                view: 'dashboard', filterStatus: 'completed', loading: true, search: '',
+                filterStart: '', filterEnd: '', customers: [],
+                form: { id: null, status: 'completed', name: '', phone: '', date: '', time: '', style: 'Çizgisel', price: 0, reason: 'Düşünmek istiyor', note: '', payments: [] }
+            }
+        },
+        computed: {
+            filteredList() {
+                // ESKİ KAYITLARI DA GÖREBİLMEK İÇİN GÜNCELLENEN MANTIK
+                let list = this.customers.filter(c => {
+                    // Eğer status yoksa (eski kayıt), onu 'completed' say
+                    const status = c.status || 'completed';
+                    return status === this.filterStatus;
                 });
+
+                if (this.filterStart) list = list.filter(c => c.date >= this.filterStart);
+                if (this.filterEnd) list = list.filter(c => c.date <= this.filterEnd);
+                if (this.search) {
+                    const s = this.search.toLowerCase();
+                    list = list.filter(c => c.name?.toLowerCase().includes(s) || c.reason?.toLowerCase().includes(s));
+                }
+                return list;
             },
-            updated() { lucide.createIcons(); }
-        }).mount('#app');
-    </script>
-</body>
-</html>
+            totalRevenueInRange() { return this.filteredList.reduce((s,c) => s + (Number(c.price) || 0), 0); },
+            totalPaidInRange() {
+                return this.filteredList.reduce((s,c) => s + (c.payments || []).reduce((ps, p) => ps + (Number(p.amount) || 0), 0), 0);
+            }
+        },
+        methods: {
+            checkPassword() { 
+                if(this.passInput === this.correctPassword) { 
+                    this.isLoggedIn = true; 
+                    localStorage.setItem('tolga_auth', 'active'); 
+                    setTimeout(() => lucide.createIcons(), 100); 
+                } 
+            },
+            logout() { this.isLoggedIn = false; localStorage.removeItem('tolga_auth'); },
+            resetDates() { this.filterStart = ''; this.filterEnd = ''; },
+            calcC(c) { return (c.payments || []).reduce((s, p) => s + (Number(p.amount) || 0), 0); },
+            addPay() { this.form.payments.push({ amount: 0, method: 'Nakit', date: new Date().toISOString().split('T')[0] }); },
+            async handleSubmit() {
+                const { id, ...data } = this.form;
+                if(id) await updateDoc(doc(db, "customers", id), data);
+                else await addDoc(colRef, { ...data, createdAt: Date.now() });
+                this.view = 'dashboard';
+            },
+            async deleteCustomer(id) { if(confirm("Kaydı silmek istiyor musun?")) await deleteDoc(doc(db, "customers", id)); },
+            startEdit(c) { 
+                // Düzenleme yaparken eski kaydı yeni formata uydur
+                this.form = JSON.parse(JSON.stringify(c));
+                if (!this.form.status) this.form.status = 'completed';
+                if (!this.form.style) this.form.style = 'Çizgisel';
+                this.view = 'edit'; 
+            },
+            openAddView() {
+                this.form = { id: null, status: 'completed', name: '', phone: '', date: new Date().toISOString().split('T')[0], time: '', style: 'Çizgisel', price: 0, reason: 'Düşünmek istiyor', note: '', payments: [] };
+                this.view = 'add';
+            },
+            sendWhatsApp(c) {
+                let msg = (c.status || 'completed') === 'completed' ? `Selam ${c.name}, randevunu hatırlatmak istedim.` : `Selam ${c.name}, sormuş olduğun ${c.style} dövme tasarımı için yardımcı olabilirim. Ne dersin?`;
+                let p = c.phone ? c.phone.replace(/\D/g,'') : '';
+                if(p.startsWith('5')) p = '90' + p;
+                window.open(`https://wa.me/${p}?text=${encodeURIComponent(msg)}`, '_blank');
+            }
+        },
+        mounted() {
+            if(localStorage.getItem('tolga_auth') === 'active') this.isLoggedIn = true;
+            onSnapshot(query(colRef, orderBy("date", "desc")), (snap) => {
+                this.customers = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+                this.loading = false;
+                setTimeout(() => lucide.createIcons(), 200);
+            });
+        },
+        updated() { lucide.createIcons(); }
+    }).mount('#app');
+</script>
