@@ -190,12 +190,12 @@
     import { getFirestore, collection, addDoc, deleteDoc, doc, updateDoc, onSnapshot, query, orderBy } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
     const firebaseConfig = { 
-        apiKey: "SENİN_API_KEY", 
-        authDomain: "tolgattoo.firebaseapp.com", 
-        projectId: "tolgattoo", 
-        storageBucket: "tolgattoo.appspot.com", 
-        messagingSenderId: "...", 
-        appId: "..." 
+        apiKey: "AIzaSyAnzDQHJ9BZ-0NfZRqjggTsJZtn-fgFHY4", 
+        authDomain: "tolgatto-panel.firebaseapp.com", 
+        projectId: "tolgatto-panel", 
+        storageBucket: "tolgatto-panel.firebasestorage.app", 
+        messagingSenderId: "361836880672", 
+        appId: "1:361836880672:web:126ea91110d44a8dd66d45" 
     };
     
     const fb = initializeApp(firebaseConfig);
@@ -206,7 +206,7 @@
     createApp({
         data() {
             return {
-                isLoggedIn: false, passInput: '', correctPassword: 'tattoo2024',
+                isLoggedIn: false, passInput: '', correctPassword: '312593',
                 view: 'dashboard', filterStatus: 'completed', loading: true, search: '',
                 filterStart: '', filterEnd: '', customers: [],
                 form: { id: null, status: 'completed', name: '', phone: '', date: '', time: '', style: 'Çizgisel', price: 0, reason: 'Düşünmek istiyor', note: '', payments: [] }
