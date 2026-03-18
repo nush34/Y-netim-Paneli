@@ -3,13 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>tolgattoo | Pro Studio v3.5</title>
+    <title>tolgattoo | Pro Studio v3.3</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;900&display=swap');
-        body { font-family: 'Inter', sans-serif; background-color: #050505; color: white; margin: 0; padding: 0; }
+        body { font-family: 'Inter', sans-serif; background-color: #050505; color: white; }
         .glass { background: rgba(255, 255, 255, 0.02); backdrop-filter: blur(15px); border: 1px solid rgba(255,255,255,0.08); }
         input, select, textarea { color-scheme: dark; }
         .tab-active { border-bottom: 2px solid #f59e0b; color: #f59e0b; }
@@ -18,16 +18,16 @@
     </style>
 </head>
 <body>
-    <div id="app" class="min-h-screen">
+    <div id="app">
         <div v-if="!isLoggedIn" class="fixed inset-0 z-[9999] bg-[#050505] flex items-center justify-center p-6 text-center">
             <div class="max-w-md w-full glass p-10 rounded-[3rem] border-amber-500/10">
                 <h1 class="text-3xl font-black italic uppercase tracking-widest text-amber-500 mb-8">tolgattoo</h1>
                 <input v-model="passInput" type="password" placeholder="Şifre" @keyup.enter="checkPassword" class="w-full bg-neutral-900 border border-neutral-800 p-4 rounded-2xl outline-none focus:border-amber-500 text-center mb-4 text-2xl tracking-widest">
-                <button @click="checkPassword" class="w-full bg-amber-600 p-4 rounded-2xl font-black uppercase tracking-widest hover:bg-amber-500 transition-all">Giriş Yap</button>
+                <button @click="checkPassword" class="w-full bg-amber-600 p-4 rounded-2xl font-black uppercase tracking-widest">Giriş</button>
             </div>
         </div>
 
-        <div v-else class="flex w-full min-h-screen">
+        <template v-else>
             <aside class="w-64 bg-black border-r border-neutral-900 p-6 flex flex-col fixed h-full no-print">
                 <div class="mb-10 text-center">
                     <div class="w-24 h-24 mb-4 mx-auto rounded-3xl border border-amber-500/20 p-2 bg-neutral-900/30 flex items-center justify-center overflow-hidden">
@@ -37,194 +37,149 @@
                 </div>
                 <nav class="space-y-3 flex-1">
                     <button @click="view = 'dashboard'" :class="view === 'dashboard' ? 'bg-amber-600 text-white shadow-lg shadow-amber-900/20' : 'text-neutral-500'" class="w-full flex items-center gap-3 px-5 py-4 rounded-2xl font-bold uppercase text-xs tracking-wider transition-all">
-                        <span><i data-lucide="layout-dashboard"></i></span> Dashboard
+                        <i data-lucide="layout-dashboard"></i> Dashboard
                     </button>
                     <button @click="openAddView" :class="view === 'add' ? 'bg-amber-600 text-white' : 'text-neutral-500'" class="w-full flex items-center gap-3 px-5 py-4 rounded-2xl font-bold uppercase text-xs tracking-wider transition-all">
-                        <span><i data-lucide="plus-circle"></i></span> Yeni Kayıt
+                        <i data-lucide="plus-circle"></i> Yeni Kayıt
                     </button>
                 </nav>
-                <button @click="logout" class="text-[10px] text-neutral-800 hover:text-red-500 font-black uppercase tracking-widest transition-colors">Güvenli Çıkış</button>
+                <button @click="logout" class="text-[10px] text-neutral-800 hover:text-red-500 font-black uppercase tracking-widest">Güvenli Çıkış</button>
             </aside>
 
-            <main class="flex-1 ml-64 p-8">
+            <main class="ml-64 p-8">
                 <div v-if="view === 'dashboard'">
                     <div class="flex justify-between items-center mb-8">
-                        <div>
-                            <h2 class="text-4xl font-black italic uppercase leading-none">Stüdyo Yönetimi</h2>
-                            <p class="text-neutral-500 text-[10px] uppercase font-bold tracking-[0.3em] mt-2">Dönem Analizi ve Kayıtlar</p>
-                        </div>
+                        <h2 class="text-4xl font-black italic uppercase">Stüdyo Yönetimi</h2>
                         <div class="flex gap-6">
-                            <button @click="filterStatus = 'completed'" :class="filterStatus === 'completed' ? 'tab-active font-black' : 'text-neutral-500 font-bold'" class="pb-1 uppercase text-xs tracking-widest transition-all text-white">SATIŞLAR</button>
-                            <button @click="filterStatus = 'potential'" :class="filterStatus === 'potential' ? 'tab-active font-black' : 'text-neutral-500 font-bold'" class="pb-1 uppercase text-xs tracking-widest transition-all text-white">POTANSİYELLER</button>
+                            <button @click="filterStatus = 'completed'" :class="filterStatus === 'completed' ? 'tab-active' : 'text-neutral-500'" class="pb-1 uppercase text-xs tracking-widest transition-all">SATIŞLAR</button>
+                            <button @click="filterStatus = 'potential'" :class="filterStatus === 'potential' ? 'tab-active' : 'text-neutral-500'" class="pb-1 uppercase text-xs tracking-widest transition-all">POTANSİYELLER</button>
                         </div>
                     </div>
 
                     <div class="glass p-6 rounded-[2.5rem] mb-8 flex flex-wrap items-center justify-between gap-6">
                         <div class="flex items-center gap-4">
-                            <div class="flex flex-col">
-                                <label class="text-[9px] font-bold text-neutral-500 uppercase ml-1 mb-1 tracking-widest">Başlangıç</label>
-                                <input v-model="filterStart" type="date" class="bg-black/40 border border-neutral-800 p-2 rounded-xl text-xs text-amber-500 outline-none">
-                            </div>
-                            <div class="flex flex-col">
-                                <label class="text-[9px] font-bold text-neutral-500 uppercase ml-1 mb-1 tracking-widest">Bitiş</label>
-                                <input v-model="filterEnd" type="date" class="bg-black/40 border border-neutral-800 p-2 rounded-xl text-xs text-amber-500 outline-none">
-                            </div>
-                            <button @click="resetDates" class="mt-4 text-[9px] font-bold text-neutral-700 hover:text-white uppercase transition-colors">Sıfırla</button>
+                            <input v-model="filterStart" type="date" class="bg-black/40 border border-neutral-800 p-2 rounded-xl text-xs text-amber-500 outline-none">
+                            <input v-model="filterEnd" type="date" class="bg-black/40 border border-neutral-800 p-2 rounded-xl text-xs text-amber-500 outline-none">
+                            <button @click="resetDates" class="text-[9px] font-bold text-neutral-700 hover:text-white uppercase">Sıfırla</button>
                         </div>
-
-                        <div class="flex gap-8 border-l border-neutral-800 pl-8">
-                            <div class="text-center">
-                                <p class="text-[9px] font-bold text-neutral-500 uppercase mb-1">Toplam Adet</p>
-                                <p class="text-2xl font-black text-white">{{ filteredList.length }}</p>
-                            </div>
-                            <div class="text-center">
-                                <p class="text-[9px] font-bold text-neutral-500 uppercase mb-1">Ciro / Teklif</p>
-                                <p class="text-2xl font-black text-amber-500">{{ totalRevenueInRange }} ₺</p>
-                            </div>
-                            <div v-if="filterStatus === 'completed'" class="text-center">
-                                <p class="text-[9px] font-bold text-neutral-500 uppercase mb-1">Tahsil Edilen</p>
-                                <p class="text-2xl font-black text-emerald-500">{{ totalPaidInRange }} ₺</p>
-                            </div>
+                        <div class="flex gap-8">
+                            <div class="text-center"><p class="text-[9px] text-neutral-500 uppercase mb-1">Ciro</p><p class="text-2xl font-black text-amber-500">{{ totalRevenueInRange }} ₺</p></div>
+                            <div v-if="filterStatus === 'completed'" class="text-center"><p class="text-[9px] text-neutral-500 uppercase mb-1">Kasa</p><p class="text-2xl font-black text-emerald-500">{{ totalPaidInRange }} ₺</p></div>
                         </div>
                     </div>
 
                     <div class="glass p-8 rounded-[3rem]">
-                        <input v-model="search" placeholder="İsim, tarz veya not ara..." class="w-full bg-neutral-900 border border-neutral-800 p-5 rounded-2xl mb-8 outline-none focus:border-amber-500 transition-all text-sm font-medium">
+                        <input v-model="search" placeholder="Müşteri veya detay ara..." class="w-full bg-neutral-900 border border-neutral-800 p-5 rounded-2xl mb-8 outline-none focus:border-amber-500 transition-all text-sm font-medium">
                         
                         <div class="space-y-4">
                             <div v-for="c in filteredList" :key="c.id" class="flex items-center gap-6 p-5 bg-white/[0.01] border border-white/[0.04] rounded-[2rem] hover:bg-white/[0.03] transition-all">
-                                <div class="w-16 h-16 shrink-0 rounded-xl overflow-hidden bg-neutral-900 border border-white/10 flex items-center justify-center cursor-zoom-in" @click="if(c.image) zoomedImg = c.image">
-                                    <img v-show="c.image" :src="c.image || ''" class="w-full h-full object-cover">
-                                    <span v-show="!c.image"><i data-lucide="image" class="text-neutral-700 w-5 h-5"></i></span>
+                                <div class="w-16 h-16 shrink-0 rounded-xl overflow-hidden bg-neutral-900 border border-white/10 flex items-center justify-center cursor-zoom-in" @click="zoomedImg = c.image">
+                                    <img v-if="c.image" :src="c.image" class="w-full h-full object-cover">
+                                    <i v-else data-lucide="image" class="text-neutral-700 w-5 h-5"></i>
                                 </div>
                                 <div class="flex-1">
                                     <div class="flex items-center gap-3">
-                                        <h4 class="font-bold text-xl">{{ c.name || 'İsimsiz Kayıt' }}</h4>
-                                        <span class="text-[9px] px-2 py-0.5 rounded bg-neutral-800 text-neutral-400 font-bold uppercase tracking-widest border border-white/5">{{ c.style || 'Belirtilmedi' }}</span>
+                                        <h4 class="font-bold text-xl">{{ c.name }}</h4>
+                                        <span class="text-[9px] px-2 py-0.5 rounded bg-neutral-800 text-neutral-400 font-bold uppercase tracking-widest">{{ c.style }}</span>
                                     </div>
-                                    <p v-if="(c.status || 'completed') === 'potential'" class="text-xs text-amber-500/70 mt-1 italic font-medium">🚩 {{ c.reason || 'Not yok' }}: {{ c.note || '' }}</p>
+                                    <p v-if="c.status === 'potential'" class="text-xs text-amber-500/70 mt-1 italic">🚩 {{ c.reason }}</p>
                                     <div class="flex gap-4 text-[10px] text-neutral-500 mt-2 font-bold uppercase tracking-widest">
-                                        <span>📅 {{ c.date || 'Tarih Yok' }}</span>
-                                        <span>📱 {{ c.source || 'Bilinmiyor' }}</span>
+                                        <span>📅 {{ c.date }}</span>
+                                        <span>📱 {{ c.source || 'Kapı' }}</span>
                                     </div>
                                 </div>
                                 <div class="text-right">
-                                    <p class="text-2xl font-black text-white leading-none">{{ c.price || 0 }} ₺</p>
+                                    <p class="text-2xl font-black">{{ c.price }} ₺</p>
                                     <div class="flex gap-1 mt-3 justify-end">
-                                        <button @click="sendWhatsApp(c)" class="p-2 text-emerald-500 hover:bg-emerald-500/10 rounded-lg transition-colors"><i data-lucide="message-circle" class="w-5 h-5"></i></button>
-                                        <button @click="startEdit(c)" class="p-2 text-neutral-400 hover:bg-white/10 rounded-lg transition-colors"><i data-lucide="edit-3" class="w-5 h-5"></i></button>
-                                        <button @click="deleteCustomer(c.id)" class="p-2 text-red-500 hover:bg-red-500/10 rounded-lg transition-colors"><i data-lucide="trash-2" class="w-5 h-5"></i></button>
+                                        <button @click="sendWhatsApp(c)" class="p-2 text-emerald-500 hover:bg-white/5 rounded-lg"><i data-lucide="message-circle" class="w-5 h-5"></i></button>
+                                        <button @click="startEdit(c)" class="p-2 text-neutral-400 hover:bg-white/5 rounded-lg"><i data-lucide="edit-3" class="w-5 h-5"></i></button>
+                                        <button @click="deleteCustomer(c.id)" class="p-2 text-red-500 hover:bg-white/5 rounded-lg"><i data-lucide="trash-2" class="w-5 h-5"></i></button>
                                     </div>
                                 </div>
-                            </div>
-                            <div v-if="filteredList.length === 0" class="text-center py-20 text-neutral-700 italic border-2 border-dashed border-neutral-900 rounded-[2rem]">
-                                Kayıt bulunamadı...
                             </div>
                         </div>
                     </div>
                 </div>
 
-                <div v-else-if="view === 'add' || view === 'edit'" class="max-w-4xl mx-auto glass p-10 rounded-[3.5rem] shadow-3xl">
+                <div v-else-if="view === 'add' || view === 'edit'" class="max-w-4xl mx-auto glass p-10 rounded-[3.5rem]">
                     <div class="flex justify-between items-center mb-10">
-                        <h2 class="text-3xl font-black italic uppercase tracking-tighter">{{ view === 'edit' ? 'Kaydı Düzenle' : 'Yeni Müşteri Kaydı' }}</h2>
-                        <button @click="view = 'dashboard'" class="bg-neutral-900 p-2 rounded-full hover:text-red-500 transition-colors"><span><i data-lucide="x"></i></span></button>
+                        <h2 class="text-3xl font-black italic uppercase">{{ view === 'edit' ? 'Düzenle' : 'Yeni Kayıt' }}</h2>
+                        <button @click="view = 'dashboard'" class="text-neutral-500 hover:text-white"><i data-lucide="x"></i></button>
                     </div>
                     <form @submit.prevent="handleSubmit" class="grid grid-cols-1 md:grid-cols-2 gap-10">
                         <div class="space-y-5">
-                            <div>
-                                <label class="text-[10px] font-black uppercase text-neutral-600 ml-2 mb-2 block">Kayıt Türü</label>
-                                <select v-model="form.status" class="w-full bg-neutral-900 border border-neutral-800 p-4 rounded-2xl outline-none focus:border-amber-500 font-bold text-sm">
-                                    <option value="completed">✅ Satış Yapıldı / Randevu Alındı</option>
-                                    <option value="potential">⏳ Potansiyel (Sadece Fiyat Sordu)</option>
-                                </select>
-                            </div>
+                            <select v-model="form.status" class="w-full bg-neutral-900 border border-neutral-800 p-4 rounded-2xl outline-none focus:border-amber-500 font-bold">
+                                <option value="completed">✅ Satış / Randevu</option>
+                                <option value="potential">⏳ Potansiyel (Soru-Fiyat)</option>
+                            </select>
                             <input v-model="form.name" placeholder="Müşteri Ad Soyad" required class="w-full bg-neutral-900 border border-neutral-800 p-4 rounded-2xl outline-none focus:border-amber-500">
-                            <input v-model="form.phone" placeholder="WhatsApp Numarası" class="w-full bg-neutral-900 border border-neutral-800 p-4 rounded-2xl outline-none">
+                            <input v-model="form.phone" placeholder="WhatsApp (Örn: 505...)" class="w-full bg-neutral-900 border border-neutral-800 p-4 rounded-2xl outline-none">
                             
-                            <div class="relative aspect-video rounded-3xl bg-neutral-900 border-2 border-dashed border-neutral-800 flex items-center justify-center overflow-hidden hover:border-amber-500/50 transition-colors">
-                                <img v-show="form.image" :src="form.image || ''" class="w-full h-full object-cover">
-                                <div v-show="!form.image" class="text-center">
-                                    <span><i data-lucide="camera" class="mx-auto text-neutral-700 w-8 h-8 mb-2"></i></span>
-                                    <p class="text-[9px] text-neutral-600 font-black uppercase">Referans Görsel Yükle</p>
+                            <div class="relative aspect-video rounded-3xl bg-neutral-900 border-2 border-dashed border-neutral-800 flex items-center justify-center overflow-hidden">
+                                <img v-if="form.image" :src="form.image" class="w-full h-full object-cover">
+                                <div v-else class="text-center">
+                                    <i data-lucide="camera" class="mx-auto text-neutral-700 w-8 h-8 mb-2"></i>
+                                    <p class="text-[9px] text-neutral-600 font-black uppercase">Görsel Yükle</p>
                                 </div>
                                 <input type="file" @change="handleFileUpload" class="absolute inset-0 opacity-0 cursor-pointer">
                             </div>
 
                             <div v-if="form.status === 'potential'" class="space-y-4">
-                                <label class="text-[10px] font-black uppercase text-amber-500 ml-2 block tracking-widest">Neden Beklemede?</label>
-                                <select v-model="form.reason" class="w-full bg-neutral-900 border border-amber-900/30 p-4 rounded-2xl outline-none text-sm">
+                                <select v-model="form.reason" class="w-full bg-neutral-900 border border-neutral-800 p-4 rounded-2xl outline-none text-sm">
                                     <option value="Maaşı alınca gelecek">Maaşı alınca gelecek</option>
                                     <option value="Ailesine danışacak">Ailesine danışacak</option>
                                     <option value="Düşünmek istiyor">Düşünmek istiyor</option>
                                     <option value="Sadece fiyat almak istedi">Sadece fiyat almak istedi</option>
-                                    <option value="Fiyat yüksek geldi">Fiyat yüksek geldi</option>
                                 </select>
-                                <textarea v-model="form.note" placeholder="Ekstra notlar..." class="w-full bg-neutral-900 border border-neutral-800 p-4 rounded-2xl outline-none h-24 text-sm"></textarea>
+                                <textarea v-model="form.note" placeholder="Notlar..." class="w-full bg-neutral-900 border border-neutral-800 p-4 rounded-2xl outline-none h-24 text-sm"></textarea>
                             </div>
                         </div>
 
                         <div class="space-y-5">
                             <div class="grid grid-cols-2 gap-4">
-                                <div class="flex flex-col"><label class="text-[9px] font-bold uppercase text-neutral-600 ml-2 mb-1">Tarih</label><input v-model="form.date" type="date" class="bg-neutral-900 border border-neutral-800 p-4 rounded-2xl outline-none text-sm"></div>
-                                <div class="flex flex-col"><label class="text-[9px] font-bold uppercase text-neutral-600 ml-2 mb-1">Müşteri Kaynağı</label>
-                                    <select v-model="form.source" class="bg-neutral-900 border border-neutral-800 p-4 rounded-2xl outline-none text-sm">
-                                        <option value="Sosyal Medya">Sosyal Medya</option>
-                                        <option value="Kapı">Kapı Müşterisi</option>
-                                    </select>
-                                </div>
-                            </div>
-                            <div>
-                                <label class="text-[10px] font-black uppercase text-neutral-600 ml-2 mb-2 block tracking-widest">Dövme Tarzı</label>
-                                <select v-model="form.style" class="w-full bg-neutral-900 border border-neutral-800 p-4 rounded-2xl outline-none text-sm">
-                                    <option value="Çizgisel">Çizgisel (Linework)</option>
-                                    <option value="Realistik">Realistik</option>
-                                    <option value="Cover Up">Cover Up</option>
-                                    <option value="Minimal">Minimal</option>
-                                    <option value="Renkli">Renkli</option>
+                                <input v-model="form.date" type="date" class="bg-neutral-900 border border-neutral-800 p-4 rounded-2xl outline-none text-sm font-bold">
+                                <select v-model="form.source" class="bg-neutral-900 border border-neutral-800 p-4 rounded-2xl outline-none text-sm">
+                                    <option value="Sosyal Medya">Sosyal Medya</option>
+                                    <option value="Kapı">Kapı</option>
                                 </select>
                             </div>
+                            <select v-model="form.style" class="w-full bg-neutral-900 border border-neutral-800 p-4 rounded-2xl outline-none text-sm">
+                                <option value="Çizgisel">Çizgisel</option><option value="Realistik">Realistik</option>
+                                <option value="Cover Up">Cover Up</option><option value="Minimal">Minimal</option>
+                            </select>
                             <div class="p-6 bg-amber-600/5 border border-amber-600/20 rounded-3xl text-center">
-                                <p class="text-[9px] text-amber-500 font-bold uppercase mb-2 tracking-widest">Anlaşılan Ücret (₺)</p>
-                                <input v-model.number="form.price" type="number" class="w-full bg-transparent text-4xl font-black outline-none text-center" placeholder="0">
+                                <p class="text-[9px] text-amber-500 font-bold uppercase mb-2 tracking-widest">Ücret (₺)</p>
+                                <input v-model.number="form.price" type="number" class="w-full bg-transparent text-4xl font-black outline-none text-center">
                             </div>
-                            
+
                             <div v-if="form.status === 'completed'" class="space-y-3">
-                                <div class="flex justify-between items-center px-1"><span class="text-[10px] font-bold text-neutral-600 uppercase">Tahsilatlar</span><button type="button" @click="addPay" class="text-emerald-500 text-[10px] font-bold uppercase hover:text-emerald-400">+ Tahsilat Ekle</button></div>
+                                <div class="flex justify-between items-center px-1"><span class="text-[10px] font-bold text-neutral-600 uppercase">Tahsilat Detayı</span><button type="button" @click="addPay" class="text-emerald-500 text-[10px] font-bold uppercase">+ EKLE</button></div>
                                 <div v-for="(p, i) in form.payments" :key="i" class="flex gap-2 items-center bg-black/40 p-2 rounded-2xl border border-neutral-800">
-                                    <input v-model.number="p.amount" type="number" class="w-16 bg-transparent outline-none text-sm font-bold text-center" placeholder="₺">
+                                    <input v-model.number="p.amount" type="number" class="w-16 bg-transparent outline-none text-sm font-bold" placeholder="₺">
                                     <select v-model="p.method" class="bg-transparent text-[9px] uppercase font-bold outline-none border-l border-neutral-800 pl-2">
                                         <option value="Nakit">Nakit</option><option value="Kart">Kart</option>
                                     </select>
-                                    <input v-model="p.date" type="date" class="bg-transparent text-[9px] outline-none border-l border-neutral-800 pl-2 text-neutral-400">
-                                    <button @click="form.payments.splice(i,1)" class="text-red-900 hover:text-red-500 ml-auto"><span><i data-lucide="x-circle" class="w-4 h-4"></i></span></button>
+                                    <input v-model="p.date" type="date" class="bg-transparent text-[9px] outline-none border-l border-neutral-800 pl-2">
+                                    <button @click="form.payments.splice(i,1)" class="text-red-900 ml-auto"><i data-lucide="x-circle" class="w-4 h-4"></i></button>
                                 </div>
                             </div>
-                            <button type="submit" class="w-full bg-amber-600 p-6 rounded-3xl font-black text-xl tracking-[0.4em] shadow-xl hover:bg-amber-500 transition-all mt-4">KAYDI KAYDET</button>
+                            <button type="submit" class="w-full bg-amber-600 p-6 rounded-3xl font-black text-xl tracking-[0.4em] shadow-xl hover:bg-amber-500 transition-all mt-4">KAYDET</button>
                         </div>
                     </form>
                 </div>
             </main>
-            
+
             <div v-if="zoomedImg" @click="zoomedImg = null" class="fixed inset-0 z-[10000] bg-black/95 flex items-center justify-center p-6 cursor-zoom-out">
                 <img :src="zoomedImg" class="max-w-full max-h-full rounded-2xl shadow-2xl animate-in zoom-in-95 duration-300">
             </div>
-        </div>
+        </template>
     </div>
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-        import { getFirestore, collection, addDoc, deleteDoc, doc, updateDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+        import { getFirestore, collection, addDoc, deleteDoc, doc, updateDoc, onSnapshot, query, orderBy } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-        // DİKKAT: BURAYA KENDİ FIREBASE BİLGİLERİNİ GİRMELİSİN!
-        const firebaseConfig = { 
-            apiKey: "AIzaSyAnzDQHJ9BZ-0NfZRqjggTsJZtn-fgFHY4", 
-            authDomain: "tolgattoo-panel.firebaseapp.com", 
-            projectId: "tolgattoo-panel", 
-            storageBucket: "tolgattoo-panel.appspot.com", 
-            messagingSenderId: "361836880672", 
-            appId: "1:361836880672:web:126ea91110d44a8dd66d45" 
-        };
-        
+        const firebaseConfig = { apiKey: "AIzaSyAnzDQHJ9BZ-0NfZRqjggTsJZtn-fgFHY4", authDomain: "tolgattoo-panel.firebaseapp.com", projectId: "tolgattoo-panel", storageBucket: "tolgattoo-panel.appspot.com", messagingSenderId: "361836880672", appId: "1:361836880672:web:126ea91110d44a8dd66d45" };
         const fb = initializeApp(firebaseConfig);
         const db = getFirestore(fb);
         const colRef = collection(db, "customers");
@@ -241,34 +196,22 @@
             },
             computed: {
                 filteredList() {
-                    let list = this.customers.filter(c => {
-                        const s = c.status || 'completed'; 
-                        return s === this.filterStatus;
-                    });
-                    if (this.filterStart) list = list.filter(c => c.date && c.date >= this.filterStart);
-                    if (this.filterEnd) list = list.filter(c => c.date && c.date <= this.filterEnd);
+                    let list = this.customers.filter(c => (c.status || 'completed') === this.filterStatus);
+                    if (this.filterStart) list = list.filter(c => c.date >= this.filterStart);
+                    if (this.filterEnd) list = list.filter(c => c.date <= this.filterEnd);
                     if (this.search) {
                         const s = this.search.toLowerCase();
-                        list = list.filter(c => 
-                            (c.name && c.name.toLowerCase().includes(s)) || 
-                            (c.reason && c.reason.toLowerCase().includes(s)) || 
-                            (c.style && c.style.toLowerCase().includes(s)) ||
-                            (c.note && c.note.toLowerCase().includes(s))
-                        );
+                        list = list.filter(c => c.name?.toLowerCase().includes(s) || c.reason?.toLowerCase().includes(s));
                     }
                     return list;
                 },
                 totalRevenueInRange() { return this.filteredList.reduce((s,c) => s + (Number(c.price) || 0), 0); },
-                totalPaidInRange() { return this.filteredList.reduce((s,c) => s + (c.payments || []).reduce((ps, p) => ps + (Number(p.amount) || 0), 0), 0); }
+                totalPaidInRange() {
+                    return this.filteredList.reduce((s,c) => s + (c.payments || []).reduce((ps, p) => ps + (Number(p.amount) || 0), 0), 0);
+                }
             },
             methods: {
-                checkPassword() { 
-                    if(this.passInput === this.correctPassword) { 
-                        this.isLoggedIn = true; 
-                        localStorage.setItem('tolga_auth', 'active'); 
-                        setTimeout(() => lucide.createIcons(), 50); 
-                    } 
-                },
+                checkPassword() { if(this.passInput === this.correctPassword) { this.isLoggedIn = true; localStorage.setItem('tolga_auth', 'active'); setTimeout(() => lucide.createIcons(), 100); } },
                 logout() { this.isLoggedIn = false; localStorage.removeItem('tolga_auth'); },
                 resetDates() { this.filterStart = ''; this.filterEnd = ''; },
                 addPay() { this.form.payments.push({ amount: 0, method: 'Nakit', date: new Date().toISOString().split('T')[0] }); },
@@ -286,7 +229,7 @@
                     else await addDoc(colRef, { ...data, createdAt: Date.now() });
                     this.view = 'dashboard';
                 },
-                async deleteCustomer(id) { if(confirm("Kaydı tamamen silmek istiyor musunuz?")) await deleteDoc(doc(db, "customers", id)); },
+                async deleteCustomer(id) { if(confirm("Silmek istiyor musun?")) await deleteDoc(doc(db, "customers", id)); },
                 startEdit(c) { 
                     this.form = JSON.parse(JSON.stringify(c));
                     if (!this.form.status) this.form.status = 'completed';
@@ -298,38 +241,21 @@
                     this.view = 'add';
                 },
                 sendWhatsApp(c) {
-                    let msg = (c.status || 'completed') === 'completed' ? `Selam ${c.name}, randevunu hatırlatmak istedim.` : `Selam ${c.name}, sormuş olduğun ${c.style || ''} dövme tasarımı için yardımcı olabilirim. Ne dersin?`;
+                    let msg = (c.status || 'completed') === 'completed' ? `Selam ${c.name}, randevunu hatırlatmak istedim.` : `Selam ${c.name}, sormuş olduğun ${c.style} tasarımı için yardımcı olabilirim.`;
                     let p = c.phone ? c.phone.replace(/\D/g,'') : '';
                     if(p.startsWith('5')) p = '90' + p;
                     if(p) window.open(`https://wa.me/${p}?text=${encodeURIComponent(msg)}`, '_blank');
-                    else alert("Bu müşteri için kayıtlı bir telefon numarası yok.");
                 }
             },
             mounted() {
                 if(localStorage.getItem('tolga_auth') === 'active') this.isLoggedIn = true;
-                
-                try {
-                    onSnapshot(colRef, (snap) => {
-                        let allData = snap.docs.map(d => ({ id: d.id, ...d.data() }));
-                        allData.sort((a, b) => {
-                            let timeA = new Date(a.date || a.createdAt || 0).getTime();
-                            let timeB = new Date(b.date || b.createdAt || 0).getTime();
-                            return timeB - timeA;
-                        });
-                        this.customers = allData;
-                        this.loading = false;
-                        setTimeout(() => lucide.createIcons(), 50);
-                    }, (error) => {
-                        console.error("Firebase Hatası:", error);
-                        alert("Veritabanı bağlantı hatası! Lütfen kodun içindeki Firebase API Key bilgilerini doğru girdiğine emin ol.");
-                    });
-                } catch(e) {
-                    console.error("Bağlantı çökmesi:", e);
-                }
+                onSnapshot(query(colRef, orderBy("date", "desc")), (snap) => {
+                    this.customers = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+                    this.loading = false;
+                    setTimeout(() => lucide.createIcons(), 200);
+                });
             },
-            updated() { 
-                this.$nextTick(() => { lucide.createIcons(); });
-            }
+            updated() { lucide.createIcons(); }
         }).mount('#app');
     </script>
 </body>
