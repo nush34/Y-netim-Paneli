@@ -3,13 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>tolgattoo | Pro Studio v3.4</title>
+    <title>tolgattoo | Pro Studio v3.5</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;900&display=swap');
-        body { font-family: 'Inter', sans-serif; background-color: #050505; color: white; }
+        body { font-family: 'Inter', sans-serif; background-color: #050505; color: white; margin: 0; padding: 0; }
         .glass { background: rgba(255, 255, 255, 0.02); backdrop-filter: blur(15px); border: 1px solid rgba(255,255,255,0.08); }
         input, select, textarea { color-scheme: dark; }
         .tab-active { border-bottom: 2px solid #f59e0b; color: #f59e0b; }
@@ -18,7 +18,7 @@
     </style>
 </head>
 <body>
-    <div id="app">
+    <div id="app" class="min-h-screen">
         <div v-if="!isLoggedIn" class="fixed inset-0 z-[9999] bg-[#050505] flex items-center justify-center p-6 text-center">
             <div class="max-w-md w-full glass p-10 rounded-[3rem] border-amber-500/10">
                 <h1 class="text-3xl font-black italic uppercase tracking-widest text-amber-500 mb-8">tolgattoo</h1>
@@ -27,7 +27,7 @@
             </div>
         </div>
 
-        <template v-else>
+        <div v-else class="flex w-full min-h-screen">
             <aside class="w-64 bg-black border-r border-neutral-900 p-6 flex flex-col fixed h-full no-print">
                 <div class="mb-10 text-center">
                     <div class="w-24 h-24 mb-4 mx-auto rounded-3xl border border-amber-500/20 p-2 bg-neutral-900/30 flex items-center justify-center overflow-hidden">
@@ -37,16 +37,16 @@
                 </div>
                 <nav class="space-y-3 flex-1">
                     <button @click="view = 'dashboard'" :class="view === 'dashboard' ? 'bg-amber-600 text-white shadow-lg shadow-amber-900/20' : 'text-neutral-500'" class="w-full flex items-center gap-3 px-5 py-4 rounded-2xl font-bold uppercase text-xs tracking-wider transition-all">
-                        <i data-lucide="layout-dashboard"></i> Dashboard
+                        <span><i data-lucide="layout-dashboard"></i></span> Dashboard
                     </button>
                     <button @click="openAddView" :class="view === 'add' ? 'bg-amber-600 text-white' : 'text-neutral-500'" class="w-full flex items-center gap-3 px-5 py-4 rounded-2xl font-bold uppercase text-xs tracking-wider transition-all">
-                        <i data-lucide="plus-circle"></i> Yeni Kayıt
+                        <span><i data-lucide="plus-circle"></i></span> Yeni Kayıt
                     </button>
                 </nav>
                 <button @click="logout" class="text-[10px] text-neutral-800 hover:text-red-500 font-black uppercase tracking-widest transition-colors">Güvenli Çıkış</button>
             </aside>
 
-            <main class="ml-64 p-8">
+            <main class="flex-1 ml-64 p-8">
                 <div v-if="view === 'dashboard'">
                     <div class="flex justify-between items-center mb-8">
                         <div>
@@ -94,8 +94,8 @@
                         <div class="space-y-4">
                             <div v-for="c in filteredList" :key="c.id" class="flex items-center gap-6 p-5 bg-white/[0.01] border border-white/[0.04] rounded-[2rem] hover:bg-white/[0.03] transition-all">
                                 <div class="w-16 h-16 shrink-0 rounded-xl overflow-hidden bg-neutral-900 border border-white/10 flex items-center justify-center cursor-zoom-in" @click="if(c.image) zoomedImg = c.image">
-                                    <img v-if="c.image" :src="c.image" class="w-full h-full object-cover">
-                                    <i v-else data-lucide="image" class="text-neutral-700 w-5 h-5"></i>
+                                    <img v-show="c.image" :src="c.image || ''" class="w-full h-full object-cover">
+                                    <span v-show="!c.image"><i data-lucide="image" class="text-neutral-700 w-5 h-5"></i></span>
                                 </div>
                                 <div class="flex-1">
                                     <div class="flex items-center gap-3">
@@ -118,7 +118,7 @@
                                 </div>
                             </div>
                             <div v-if="filteredList.length === 0" class="text-center py-20 text-neutral-700 italic border-2 border-dashed border-neutral-900 rounded-[2rem]">
-                                Bu kritere uygun kayıt bulunamadı...
+                                Kayıt bulunamadı...
                             </div>
                         </div>
                     </div>
@@ -127,7 +127,7 @@
                 <div v-else-if="view === 'add' || view === 'edit'" class="max-w-4xl mx-auto glass p-10 rounded-[3.5rem] shadow-3xl">
                     <div class="flex justify-between items-center mb-10">
                         <h2 class="text-3xl font-black italic uppercase tracking-tighter">{{ view === 'edit' ? 'Kaydı Düzenle' : 'Yeni Müşteri Kaydı' }}</h2>
-                        <button @click="view = 'dashboard'" class="bg-neutral-900 p-2 rounded-full hover:text-red-500 transition-colors"><i data-lucide="x"></i></button>
+                        <button @click="view = 'dashboard'" class="bg-neutral-900 p-2 rounded-full hover:text-red-500 transition-colors"><span><i data-lucide="x"></i></span></button>
                     </div>
                     <form @submit.prevent="handleSubmit" class="grid grid-cols-1 md:grid-cols-2 gap-10">
                         <div class="space-y-5">
@@ -142,15 +142,15 @@
                             <input v-model="form.phone" placeholder="WhatsApp Numarası" class="w-full bg-neutral-900 border border-neutral-800 p-4 rounded-2xl outline-none">
                             
                             <div class="relative aspect-video rounded-3xl bg-neutral-900 border-2 border-dashed border-neutral-800 flex items-center justify-center overflow-hidden hover:border-amber-500/50 transition-colors">
-                                <img v-if="form.image" :src="form.image" class="w-full h-full object-cover">
-                                <div v-else class="text-center">
-                                    <i data-lucide="camera" class="mx-auto text-neutral-700 w-8 h-8 mb-2"></i>
+                                <img v-show="form.image" :src="form.image || ''" class="w-full h-full object-cover">
+                                <div v-show="!form.image" class="text-center">
+                                    <span><i data-lucide="camera" class="mx-auto text-neutral-700 w-8 h-8 mb-2"></i></span>
                                     <p class="text-[9px] text-neutral-600 font-black uppercase">Referans Görsel Yükle</p>
                                 </div>
                                 <input type="file" @change="handleFileUpload" class="absolute inset-0 opacity-0 cursor-pointer">
                             </div>
 
-                            <div v-if="form.status === 'potential'" class="space-y-4 animate-in fade-in duration-300">
+                            <div v-if="form.status === 'potential'" class="space-y-4">
                                 <label class="text-[10px] font-black uppercase text-amber-500 ml-2 block tracking-widest">Neden Beklemede?</label>
                                 <select v-model="form.reason" class="w-full bg-neutral-900 border border-amber-900/30 p-4 rounded-2xl outline-none text-sm">
                                     <option value="Maaşı alınca gelecek">Maaşı alınca gelecek</option>
@@ -184,7 +184,7 @@
                                 </select>
                             </div>
                             <div class="p-6 bg-amber-600/5 border border-amber-600/20 rounded-3xl text-center">
-                                <p class="text-[9px] text-amber-500 font-bold uppercase mb-2 tracking-widest">Anlaşılan / Teklif Edilen Ücret (₺)</p>
+                                <p class="text-[9px] text-amber-500 font-bold uppercase mb-2 tracking-widest">Anlaşılan Ücret (₺)</p>
                                 <input v-model.number="form.price" type="number" class="w-full bg-transparent text-4xl font-black outline-none text-center" placeholder="0">
                             </div>
                             
@@ -196,7 +196,7 @@
                                         <option value="Nakit">Nakit</option><option value="Kart">Kart</option>
                                     </select>
                                     <input v-model="p.date" type="date" class="bg-transparent text-[9px] outline-none border-l border-neutral-800 pl-2 text-neutral-400">
-                                    <button @click="form.payments.splice(i,1)" class="text-red-900 hover:text-red-500 ml-auto"><i data-lucide="x-circle" class="w-4 h-4"></i></button>
+                                    <button @click="form.payments.splice(i,1)" class="text-red-900 hover:text-red-500 ml-auto"><span><i data-lucide="x-circle" class="w-4 h-4"></i></span></button>
                                 </div>
                             </div>
                             <button type="submit" class="w-full bg-amber-600 p-6 rounded-3xl font-black text-xl tracking-[0.4em] shadow-xl hover:bg-amber-500 transition-all mt-4">KAYDI KAYDET</button>
@@ -204,18 +204,18 @@
                     </form>
                 </div>
             </main>
-
+            
             <div v-if="zoomedImg" @click="zoomedImg = null" class="fixed inset-0 z-[10000] bg-black/95 flex items-center justify-center p-6 cursor-zoom-out">
                 <img :src="zoomedImg" class="max-w-full max-h-full rounded-2xl shadow-2xl animate-in zoom-in-95 duration-300">
             </div>
-        </template>
+        </div>
     </div>
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
         import { getFirestore, collection, addDoc, deleteDoc, doc, updateDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-        // BURAYA KENDİ FIREBASE BİLGİLERİNİ GİRMEYİ UNUTMA
+        // DİKKAT: BURAYA KENDİ FIREBASE BİLGİLERİNİ GİRMELİSİN!
         const firebaseConfig = { 
             apiKey: "AIzaSyAnzDQHJ9BZ-0NfZRqjggTsJZtn-fgFHY4", 
             authDomain: "tolgattoo-panel.firebaseapp.com", 
@@ -241,21 +241,12 @@
             },
             computed: {
                 filteredList() {
-                    // 1. Duruma göre ayır (Eski kayıtlarda status yoksa 'completed' say)
                     let list = this.customers.filter(c => {
                         const s = c.status || 'completed'; 
                         return s === this.filterStatus;
                     });
-                    
-                    // 2. Tarih filtresini uygula (Sadece eğer tarih seçildiyse)
-                    if (this.filterStart) {
-                        list = list.filter(c => c.date && c.date >= this.filterStart);
-                    }
-                    if (this.filterEnd) {
-                        list = list.filter(c => c.date && c.date <= this.filterEnd);
-                    }
-                    
-                    // 3. Arama kutusu
+                    if (this.filterStart) list = list.filter(c => c.date && c.date >= this.filterStart);
+                    if (this.filterEnd) list = list.filter(c => c.date && c.date <= this.filterEnd);
                     if (this.search) {
                         const s = this.search.toLowerCase();
                         list = list.filter(c => 
@@ -268,16 +259,14 @@
                     return list;
                 },
                 totalRevenueInRange() { return this.filteredList.reduce((s,c) => s + (Number(c.price) || 0), 0); },
-                totalPaidInRange() {
-                    return this.filteredList.reduce((s,c) => s + (c.payments || []).reduce((ps, p) => ps + (Number(p.amount) || 0), 0), 0);
-                }
+                totalPaidInRange() { return this.filteredList.reduce((s,c) => s + (c.payments || []).reduce((ps, p) => ps + (Number(p.amount) || 0), 0), 0); }
             },
             methods: {
                 checkPassword() { 
                     if(this.passInput === this.correctPassword) { 
                         this.isLoggedIn = true; 
                         localStorage.setItem('tolga_auth', 'active'); 
-                        setTimeout(() => lucide.createIcons(), 100); 
+                        setTimeout(() => lucide.createIcons(), 50); 
                     } 
                 },
                 logout() { this.isLoggedIn = false; localStorage.removeItem('tolga_auth'); },
@@ -300,7 +289,7 @@
                 async deleteCustomer(id) { if(confirm("Kaydı tamamen silmek istiyor musunuz?")) await deleteDoc(doc(db, "customers", id)); },
                 startEdit(c) { 
                     this.form = JSON.parse(JSON.stringify(c));
-                    if (!this.form.status) this.form.status = 'completed'; // Eski kayıt formda satıs olarak görünsün
+                    if (!this.form.status) this.form.status = 'completed';
                     if (!this.form.payments) this.form.payments = [];
                     this.view = 'edit'; 
                 },
@@ -319,24 +308,28 @@
             mounted() {
                 if(localStorage.getItem('tolga_auth') === 'active') this.isLoggedIn = true;
                 
-                // ESKİ KAYITLARI KURTARAN MUCİZE KISIM BURASI:
-                // Firebase sıralamasını devreden çıkardık, tüm datayı çekip kendimiz sıralıyoruz.
-                onSnapshot(colRef, (snap) => {
-                    let allData = snap.docs.map(d => ({ id: d.id, ...d.data() }));
-                    
-                    // Kendi içimizde tarihe göre sırala (En yeni en üstte)
-                    allData.sort((a, b) => {
-                        let timeA = new Date(a.date || a.createdAt || 0).getTime();
-                        let timeB = new Date(b.date || b.createdAt || 0).getTime();
-                        return timeB - timeA;
+                try {
+                    onSnapshot(colRef, (snap) => {
+                        let allData = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+                        allData.sort((a, b) => {
+                            let timeA = new Date(a.date || a.createdAt || 0).getTime();
+                            let timeB = new Date(b.date || b.createdAt || 0).getTime();
+                            return timeB - timeA;
+                        });
+                        this.customers = allData;
+                        this.loading = false;
+                        setTimeout(() => lucide.createIcons(), 50);
+                    }, (error) => {
+                        console.error("Firebase Hatası:", error);
+                        alert("Veritabanı bağlantı hatası! Lütfen kodun içindeki Firebase API Key bilgilerini doğru girdiğine emin ol.");
                     });
-                    
-                    this.customers = allData;
-                    this.loading = false;
-                    setTimeout(() => lucide.createIcons(), 200);
-                });
+                } catch(e) {
+                    console.error("Bağlantı çökmesi:", e);
+                }
             },
-            updated() { lucide.createIcons(); }
+            updated() { 
+                this.$nextTick(() => { lucide.createIcons(); });
+            }
         }).mount('#app');
     </script>
 </body>
