@@ -179,7 +179,15 @@
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
         import { getFirestore, collection, addDoc, deleteDoc, doc, updateDoc, onSnapshot, query, orderBy } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-        const firebaseConfig = { apiKey: "AIzaSyAnzDQHJ9BZ-0NfZRqjggTsJZtn-fgFHY4", authDomain: "tolgattoo-panel.firebaseapp.com", projectId: "tolgattoo-panel", storageBucket: "tolgattoo-panel.appspot.com", messagingSenderId: "361836880672", appId: "1:361836880672:web:126ea91110d44a8dd66d45" };
+        const firebaseConfig = {
+  apiKey: "AIzaSyAnzDQHJ9BZ-0NfZRqjggTsJZtn-fgFHY4",
+  authDomain: "tolgatto-panel.firebaseapp.com",
+  projectId: "tolgatto-panel",
+  storageBucket: "tolgatto-panel.firebasestorage.app",
+  messagingSenderId: "361836880672",
+  appId: "1:361836880672:web:126ea91110d44a8dd66d45",
+  measurementId: "G-PVP8J0DK3M"
+};
         const fb = initializeApp(firebaseConfig);
         const db = getFirestore(fb);
         const colRef = collection(db, "customers");
